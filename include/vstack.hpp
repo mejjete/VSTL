@@ -13,10 +13,11 @@ namespace vstl
         stack(const stack& st);
         stack(const std::initializer_list<T>& l);
         stack(stack&& st);
+        ~stack() { delete[] data; }
         void push(T&& elem);
         void push(const T& elem);
         T& pop();
-        int size() const;
+        int& size() const { return this->size; }
     private:
         T& operator=(const stack& t);
         static const int defSize = 10;
