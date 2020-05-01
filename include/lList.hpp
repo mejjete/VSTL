@@ -1,5 +1,6 @@
+#pragma once
 #include <iostream>
-//#include "iterators.hpp"
+#include "iterators.hpp"
 namespace vstl
 {
     template <typename T>
@@ -77,12 +78,8 @@ namespace vstl
     template <typename T>
     void l_list<T>::traverse()
     {
-        Node *temp = start;
-        while(temp)
-        {
-            std::cout << temp->data << " ";
-            temp = temp->nextNode;
-        }
+        for(auto i = begin(); i != end(); i++)
+            std::cout << *i << " ";
         std::cout << std::endl;
     };
 
@@ -108,13 +105,19 @@ namespace vstl
     template <typename T>
     typename l_list<T>::iterator::self_type l_list<T>::iterator::operator++(int)
     {
-        *this->ptr_ = *this->ptr_->nextNode;
-        return *this;
+        return operator++();
     }
 
     template <typename T>
     typename l_list<T>::iterator::self_type l_list<T>::iterator::operator++()
     {
-        //
+        if(this->ptr_->nextNode)
+            this->ptr_ = this->ptr_->nextNode;
+        else 
+        {
+            while(this->ptr_->nextNode)
+                this->ptr_ = this->ptr_->nextNode;
+        }
+        return iterator(this->ptr_);
     };
 }
