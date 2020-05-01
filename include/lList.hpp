@@ -25,17 +25,17 @@ namespace vstl
         l_list() : count(0), start(nullptr) {};
         iterator begin()
         {
-            return iterator(&start->data);
+            return iterator(start);
         }
         iterator end()
         {
             Node *temp = start;
             while(temp->nextNode)
                 temp = temp->nextNode;
-            return iterator(&temp->data);
+            return iterator(temp);
         }
         void push_back(T data);
-        T& pop_back();
+        T pop_back();
         void traverse();
         class iterator
         {
@@ -43,16 +43,16 @@ namespace vstl
                 typedef iterator self_type;
                 typedef T value_type;
                 typedef T& reference;
-                typedef T* pointer;
+                typedef Node* pointer;
                 typedef std::forward_iterator_tag iterator_category;
                 typedef int difference_type;
                 iterator(pointer ptr) : ptr_(ptr) {}
                 self_type operator++();
                 self_type operator++(int junk);
-                reference operator*() { return *ptr_; }
-                const pointer operator->() { return ptr_; };
-                bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_;}
-                bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+                reference operator*() { return ptr_->data; }
+                value_type operator->() { return ptr_->data; };
+                bool operator==(const self_type& rhs) { return &ptr_->data == &rhs.ptr_->data;}
+                bool operator!=(const self_type& rhs) { return &ptr_->data != &rhs.ptr_->data;}
             private:
                 pointer ptr_;
         };
@@ -84,5 +84,37 @@ namespace vstl
             temp = temp->nextNode;
         }
         std::cout << std::endl;
+    };
+
+    template <typename T>
+    T l_list<T>::pop_back()
+    {
+        Node *temp = start;
+        Node *prev = nullptr;
+        while(temp->nextNode)
+        {
+            prev = temp;
+            temp = temp->nextNode;
+        }
+        T pData = T(0);
+        if(prev != nullptr)
+            prev->nextNode = nullptr;
+        pData = temp->data;
+        delete temp;
+        count--;
+        return pData;
+    };
+
+    template <typename T>
+    typename l_list<T>::iterator::self_type l_list<T>::iterator::operator++(int)
+    {
+        *this->ptr_ = *this->ptr_->nextNode;
+        return *this;
     }
+
+    template <typename T>
+    typename l_list<T>::iterator::self_type l_list<T>::iterator::operator++()
+    {
+        //
+    };
 }
