@@ -1,27 +1,6 @@
 #pragma once
 namespace vstl
 {
-    // template <typename T>
-    // class baseiterator
-    // {
-    //     public:
-    //         typedef iterator self_type;
-    //         typedef T value_type;
-    //         typedef T& reference;
-    //         typedef T* pointer;
-    //         typedef std::forward_iterator_tag iterator_category;
-    //         typedef int difference_type;
-    //         iterator(pointer ptr) : ptr_(ptr) {}
-    //         self_type operator++();
-    //         self_type operator++(int junk);
-    //         reference operator*();
-    //         value_type operator->();
-    //         bool operator==(const self_type& rhs);
-    //         bool operator!=(const self_type& rhs);
-    //     private:
-    //         pointer ptr_;
-    // };
-
     template <typename iterator>
     int distance(iterator begin, iterator end)
     {
@@ -29,6 +8,17 @@ namespace vstl
         for(iterator i = begin; i != end; i++)
             count++;
         return count;
+    }
+    
+    //applies to unary operations
+    template <typename InputIterator, class OutputIterator, class UnaryOperation>
+    OutputIterator transform(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation op)
+    {
+        while (first != last) {
+            *result = op(*first);
+            ++result; ++first;
+        }
+        return result;
     }
 }
 

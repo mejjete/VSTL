@@ -25,7 +25,7 @@ namespace vstl
             l_list() : count(0), start(nullptr), tail(nullptr) {};
             l_list(const l_list<T>& list);
             l_list(l_list<T>&& list);
-            explicit l_list(const_iterator first, const_iterator last) {};
+            explicit l_list(iterator first, iterator last);
             ~l_list() { clear(); };
 
             iterator begin() { return iterator(start); }
@@ -52,6 +52,8 @@ namespace vstl
                     typedef Node* pointer;
                     typedef std::forward_iterator_tag iterator_category;
                     typedef int difference_type;
+                    iterator() : ptr_(nullptr) {};
+                    iterator& operator=(pointer ptr) { ptr_ = ptr; return *this; };
                     iterator(pointer ptr) : ptr_(ptr) {}
                     self_type operator++();
                     self_type operator++(int junk);
@@ -90,7 +92,8 @@ namespace vstl
                     typedef Node* pointer;
                     typedef int difference_type;
                     typedef std::forward_iterator_tag iterator_category;
-                    reverse_iterator(pointer ptr) : ptr_(ptr) { }
+                    reverse_iterator(pointer ptr) : ptr_(ptr) {}
+                    reverse_iterator& operator=(pointer ptr) { ptr_ = ptr; return *this; };
                     self_type operator++();
                     self_type operator++(int junk); 
                     reference operator*() { return ptr_->data; }
@@ -114,8 +117,16 @@ namespace vstl
     l_list<T>::l_list(l_list<T>&& list) : start(nullptr), tail(nullptr), count(0)
     {
         this->start = list.start;
+        this->tail = list.tail;
         this->count = list.count;
     };
+
+    template <typename T>
+    l_list<T>::l_list(l_list<T>::iterator first, l_list<T>::iterator last) : start(nullptr), tail(nullptr), count(0)
+    {
+        for(auto i = first; i != last; i++)
+            push_back(*i);
+    }
     
     template <typename T>
     typename l_list<T>::Node* l_list<T>::getNode(T data)

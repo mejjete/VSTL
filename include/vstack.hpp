@@ -8,23 +8,23 @@ namespace vstl
     template <typename T>
     class stack
     {
-    public:
-        stack();
-        stack(T *ptr, size_t size);
-        stack(const stack& st);
-        stack(const std::initializer_list<T>& l);
-        stack(stack&& st);
-        ~stack() { delete[] data; }
-        void push(T&& elem);
-        void push(const T& elem);
-        T& pop();
-        int& size() const { return this->size; }
-    private:
-        T& operator=(const stack& t);
-        static const int defSize = 10;
-        int sSize;
-        int pos;
-        T *data;
+        public:
+            stack();
+            stack(T *ptr, size_t size);
+            stack(const stack& st);
+            stack(const std::initializer_list<T>& l);
+            stack(stack&& st);
+            ~stack() { delete[] data; }
+            void push(T&& elem);
+            void push(const T& elem);
+            T& pop();
+            int& size() const { return this->size; }
+        private:
+            T& operator=(const stack& t);
+            static const int defSize = 10;
+            int sSize;
+            int pos;
+            T *data;
     };
 
     template <typename T>
