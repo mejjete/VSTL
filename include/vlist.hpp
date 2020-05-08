@@ -64,8 +64,8 @@ namespace vstl
                     typedef std::forward_iterator_tag iterator_category;
                     typedef int difference_type;
                     iterator() : ptr_(nullptr) {};
-                    iterator& operator=(pointer ptr) { ptr_ = ptr; return *this; };
                     iterator(pointer ptr) : ptr_(ptr) {}
+                    iterator& operator=(pointer ptr) { ptr_ = ptr; return *this; };
                     self_type operator++();
                     self_type operator++(int junk);
                     self_type operator--();
@@ -86,7 +86,9 @@ namespace vstl
                     typedef Node* pointer;
                     typedef std::forward_iterator_tag iterator_category;
                     typedef int difference_type;
+                    const_iterator() : ptr_(nullptr) {};
                     const_iterator(pointer ptr) : ptr_(ptr) {};
+                    const_iterator& operator=(pointer ptr) { ptr_ = ptr; return *this; };
                     self_type operator++();
                     self_type operator++(int junk);
                     self_type operator--();
@@ -107,7 +109,9 @@ namespace vstl
                     typedef Node* pointer;
                     typedef int difference_type;
                     typedef std::forward_iterator_tag iterator_category;
+                    reverse_iterator() : ptr_(nullptr) {};
                     reverse_iterator(pointer ptr) : ptr_(ptr) {}
+                    reverse_iterator& operator=(pointer ptr) { ptr_ = ptr; return *this; };
                     reverse_iterator& operator=(pointer ptr) { ptr_ = ptr; return *this; };
                     self_type operator++();
                     self_type operator++(int junk); 
