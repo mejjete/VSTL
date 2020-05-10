@@ -5,7 +5,7 @@
 namespace vstl
 {
     template <typename T>
-    class l_list
+    class list
     {
         private:
             struct Node
@@ -22,18 +22,18 @@ namespace vstl
             class iterator;
             class const_iterator;
             class reverse_iterator;
-            l_list() : count(0), start(nullptr), tail(nullptr) {};
-            l_list(const l_list<T>& list);
-            l_list(l_list<T>&& list);
+            list();
+            list(const list<T>& list);
+            list(list<T>&& list);
             template <class Iter>
-            l_list(Iter first, Iter last);
-            l_list(std::initializer_list<T>& cl);
-            ~l_list() { clear(); };
+            list(Iter first, Iter last);
+            list(std::initializer_list<T>& cl);
+            ~list() { clear(); };
 
             iterator begin() { return iterator(start); }
-            iterator end() { return nullptr; }
+            iterator end() { return iterator(tail); }
             const_iterator cbegin() const { return const_iterator(start); };
-            const_iterator cend() const { return nullptr; };
+            const_iterator cend() const { return const_iterator(tail); };
             reverse_iterator rbegin() { return reverse_iterator(tail); };
             reverse_iterator rend() { return nullptr; }; 
             iterator insert(iterator pos, T& value);
@@ -52,8 +52,8 @@ namespace vstl
             bool empty() { return start == nullptr; };
             T& front() noexcept { return start->data; };
             T& back() noexcept { return tail->data; };
-            void merge(l_list& l);
-            void merge(l_list&& l);
+            void merge(list& l);
+            void merge(list&& l);
             class iterator
             {
                 public:
@@ -126,7 +126,13 @@ namespace vstl
     };
     
     template <typename T>
-    l_list<T>::l_list(const l_list<T>& list) : start(nullptr), tail(nullptr), count(0)
+    list<T>::list() : count(0)
+    {
+        start = tail = getNode(T(0));
+    }
+
+    template <typename T>
+    list<T>::list(const list<T>& list) : start(nullptr), tail(nullptr), count(0)
     {
         for(auto i = list.begin(); i != list.end(); i++)
             this->push_back(*i);
@@ -134,7 +140,7 @@ namespace vstl
     };
 
     template <typename T>
-    l_list<T>::l_list(l_list<T>&& list) : start(nullptr), tail(nullptr), count(0)
+    list<T>::list(list<T>&& list) : start(nullptr), tail(nullptr), count(0)
     {
         this->start = list.start;
         this->tail = list.tail;
@@ -143,21 +149,21 @@ namespace vstl
 
     template <typename T>
     template <class Iter>
-    l_list<T>::l_list(Iter first, Iter last) : start(nullptr), tail(nullptr), count(0)
+    list<T>::list(Iter first, Iter last) : start(nullptr), tail(nullptr), count(0)
     {
         for(auto i = first; i != last; i++)
             push_back(*i);
     }
 
     template <typename T>
-    l_list<T>::l_list(std::initializer_list<T>& l)
+    list<T>::list(std::initializer_list<T>& l)
     {
         for(auto i = l.begin(); i != l.end(); i++)
             push_back(*i);
     }
     
     template <typename T>
-    typename l_list<T>::Node* l_list<T>::getNode(T data)
+    typename list<T>::Node* list<T>::getNode(T data)
     {
         Node *temp = new Node;
         temp->data = data;
@@ -167,36 +173,39 @@ namespace vstl
     };
 
     template <typename T>
-    void l_list<T>::push_back(T& data)
+    void list<T>::push_back(T& data)
     {
         Node *temp = getNode(data);
         if(!start)
         {
             start = temp;
-            tail = start;
+            tail = getNode(T(0));
+            tail->prevNode = start;
+            start->nextNode = tail;
         }
         else
         {
-            temp->prevNode = tail;
-            tail->nextNode = temp;
-            tail = temp;
+            tail->prevNode->nextNode = temp;
+            temp->prevNode = tail->prevNode;
+            tail->prevNode = temp;
+            temp->nextNode = tail;
         }
         count++;
     };
 
     template <typename T>
-    void l_list<T>::push_back(T&& data)
+    void list<T>::push_back(T&& data)
     {
         static_cast<T&>(data);
         push_back(data);
     }
 
     template <typename T>
-    void l_list<T>::push_front(T& data)
+    void list<T>::push_front(T& data)
     {
         Node *temp = getNode(data);
         if(!start)
-            tail = start = temp;
+            push_back(data);
         else 
         {
             temp->nextNode = start;
@@ -207,34 +216,34 @@ namespace vstl
     };
 
     template <typename T>
-    void l_list<T>::push_front(T&& data)
+    void list<T>::push_front(T&& data)
     {
         static_cast<T&>(data);
         push_front(data);
     }
 
     template <typename T>
-    T l_list<T>::pop_back()
+    T list<T>::pop_back()
     {
-        T data = tail->data;
-        Node *curr = nullptr;
-        if(tail->prevNode)
+        T data = tail->prevNode->data;
+        if(tail->prevNode == start)
         {
-            curr = tail;
-            tail->prevNode->nextNode = nullptr;
-            tail = tail->prevNode;
-            delete curr;
-        }
-        else 
-        {
+            delete start;
             delete tail;
             start = tail = nullptr;
         }
-        return data;
+        else 
+        {
+            Node *prev = tail->prevNode;
+            tail->prevNode = prev->prevNode;
+            prev->prevNode->nextNode = tail;
+            delete prev;
+        }
+        return data;   
     };
 
     template <typename T>
-    T l_list<T>::pop_front()
+    T list<T>::pop_front()
     {
         T data = start->data;
         Node *curr = nullptr;
@@ -247,13 +256,14 @@ namespace vstl
         else
         {
             delete start;
+            delete tail;
             start = tail = nullptr;
         }
         return data;
     }
 
     template <typename T>
-    void l_list<T>::clear()
+    void list<T>::clear()
     {
         Node *prev = start;
         while(start)
@@ -265,7 +275,7 @@ namespace vstl
     }
 
     template <typename T>
-    void l_list<T>::traverse() const
+    void list<T>::traverse() const
     {
         for(const_iterator i = cbegin(); i != cend(); i++)
             std::cout << *i << " ";
@@ -273,13 +283,13 @@ namespace vstl
     }
 
     template <typename T>
-    typename l_list<T>::iterator::self_type l_list<T>::iterator::operator++(int)
+    typename list<T>::iterator::self_type list<T>::iterator::operator++(int)
     {
         return operator++();
     };
 
     template <typename T>
-    typename l_list<T>::iterator::self_type l_list<T>::iterator::operator++()
+    typename list<T>::iterator::self_type list<T>::iterator::operator++()
     {
         if(ptr_)
             ptr_ = ptr_->nextNode;
@@ -289,7 +299,7 @@ namespace vstl
     };
 
     template <typename T>
-    typename l_list<T>::iterator::self_type l_list<T>::iterator::operator--()
+    typename list<T>::iterator::self_type list<T>::iterator::operator--()
     {
         if(ptr_)
             ptr_ = ptr_->prevNode;
@@ -297,19 +307,19 @@ namespace vstl
     };
 
     template <typename T>
-    typename l_list<T>::iterator::self_type l_list<T>::iterator::operator--(int)
+    typename list<T>::iterator::self_type list<T>::iterator::operator--(int)
     {
         return operator++();
     };
 
     template <typename T>
-    typename l_list<T>::const_iterator::self_type l_list<T>::const_iterator::operator++(int)
+    typename list<T>::const_iterator::self_type list<T>::const_iterator::operator++(int)
     {
         return operator++();
     };
 
     template <typename T>
-    typename l_list<T>::const_iterator::self_type l_list<T>::const_iterator::operator++()
+    typename list<T>::const_iterator::self_type list<T>::const_iterator::operator++()
     {
         if(ptr_)
             ptr_ = ptr_->nextNode;
@@ -317,13 +327,13 @@ namespace vstl
     };
 
     template <typename T>
-    typename l_list<T>::reverse_iterator::self_type l_list<T>::reverse_iterator::operator++(int)
+    typename list<T>::reverse_iterator::self_type list<T>::reverse_iterator::operator++(int)
     {
         return operator++();
     };
 
     template <typename T>
-    typename l_list<T>::reverse_iterator::self_type l_list<T>::reverse_iterator::operator++()
+    typename list<T>::reverse_iterator::self_type list<T>::reverse_iterator::operator++()
     {
         if(ptr_)
             ptr_ = ptr_->prevNode;
@@ -331,7 +341,7 @@ namespace vstl
     };
 
     template <typename T>
-    typename l_list<T>::iterator l_list<T>::insert(iterator pos, T& value)
+    typename list<T>::iterator list<T>::insert(iterator pos, T& value)
     {
         if(pos)
             *pos = value;
@@ -339,7 +349,7 @@ namespace vstl
     };
 
     template <typename T>
-    typename l_list<T>::iterator l_list<T>::insert(iterator pos, T&& value)
+    typename list<T>::iterator list<T>::insert(iterator pos, T&& value)
     {
         *pos = value;
         return pos;
