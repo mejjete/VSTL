@@ -32,8 +32,8 @@ namespace vstl
             iterator end() { return &data[used_size]; };
             const_iterator cbegin() const { &data[0]; };
             const_iterator cend() const { &data[used_size]; };
-            reverse_iterator rbegin() { reverse_iterator(data); };
-            reverse_iterator rend() { reverse_iterator(&data[used_sizes]); };
+            reverse_iterator rbegin() { return reverse_iterator(&data[used_size]); };
+            reverse_iterator rend() { return reverse_iterator(data); };
 
             void push_back(const T& item);
             T pop_back();

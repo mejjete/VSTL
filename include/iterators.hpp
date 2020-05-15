@@ -1,15 +1,26 @@
 #pragma once
 namespace vstl
-{
-    template <typename iterator>
-    int distance(iterator begin, iterator end)
+{   
+    template <typename T>
+    class reverse_iterator
     {
-        int count = 0;
-        for(iterator i = begin; i != end; i++)
-            count++;
-        return count;
-    }
-    
+        public:
+            typedef reverse_iterator<T> self_type;
+            typedef T                   value_type;
+            typedef T*                  pointer;
+            typedef T&                  reference;
+            reverse_iterator();
+            reverse_iterator(T* data) : data_(data) {};
+            self_type& operator=(pointer ptr) { data_ = ptr; };
+            self_type operator++() { return reverse_iterator(data_ = data_ - 1); };
+            self_type operator++(int) { return operator++(); };
+            reference operator*() { return *data_; };
+            bool operator==(const self_type& rhs) { return data_ == rhs.data; };
+            bool operator!=(const self_type& rhs) { return data_ != rhs.data_; };
+        private:
+            pointer data_;
+    };
+
     //applies to unary operations
     template <typename InputIterator, class OutputIterator, class UnaryOperation>
     OutputIterator transform(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation op)
@@ -19,7 +30,7 @@ namespace vstl
             ++result; ++first;
         }
         return result;
-    }
+    };
 }
 
 
