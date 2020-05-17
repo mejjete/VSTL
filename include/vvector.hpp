@@ -1,8 +1,10 @@
 #pragma once
 #include <iostream>
 #include <cstring>
-#include "iterators.hpp"
 #include <stdexcept>
+#include <initializer_list>
+#include "iterators.hpp"
+#include "valgorithm.hpp"
 namespace vstl
 {
     template <typename T>
@@ -12,7 +14,7 @@ namespace vstl
             T* m_data;
             size_t m_size;
             int m_used_size;
-            void reallocate_space();
+            void reallocate_space(int sSize);
         public:
             typedef vector<T>                                   self_type;
             typedef T                                           value_type;
@@ -30,7 +32,9 @@ namespace vstl
             vector(const vector<T>& vect);
             vector(vector<T>&& vect);
             vector(const std::initializer_list<T>& list);
-            self_type& operator+(const self_type& rhs);
+            template <typename Iter>
+            vector(Iter first, Iter last);
+            ~vector() { delete[] m_data; };
 
             iterator begin() { return &m_data[0]; };
             iterator end() { return &m_data[m_used_size]; };
@@ -43,12 +47,22 @@ namespace vstl
 
             reference operator[](int i);
             const_reference operator[](int i) const;
+            self_type& operator=(const self_type& vect);
+            self_type& operator=(std::initializer_list<T>& l);
+            self_type& operator=(self_type&& vect);
 
-            bool empty() const;
-            int size() const { return m_size; }; 
-            int capacity() const { return m_used_size; };
+            void swap(self_type& vect);
+            void assign(int n, const value_type& value);
+            template <typename Iter>
+            void assign(Iter first, Iter last);
+            void assign(std::initializer_list<T>& l);
+            
 
-            void resize(int n, const reference value);
+            bool empty() const { return m_used_size == 0; };
+            int size() const { return m_used_size; }; 
+            int capacity() const { return m_size; };
+
+            void resize(int n, const_reference value);
             void resize(int n);
             void reserve(int n);
             void set_capacity(int n);
@@ -57,11 +71,11 @@ namespace vstl
             pointer data() { return m_data; };
             const_reference data() const noexcept;
 
-            reference front();
-            const_reference front() const;
+            reference front() { return m_data[0]; };
+            const_reference front() const { return m_data[0]; };
             
-            reference back();
-            const_reference back() const;
+            reference back() { return m_data[m_used_size - 1]; };
+            const_reference back() const { return m_data[m_used_size - 1]; };
 
             reference at(int pos);
             const_reference at(int pos) const;
@@ -74,9 +88,17 @@ namespace vstl
 
             template <typename ...Argc>
             iterator emplace(const_iterator position, Argc&& ...argc);
+
+            template <typename ...Argc>
+            reference emplace(const_iterator position, Argc&& ...argc);
             
             template <typename InputIter>
             iterator insert(const_iterator position, InputIter first, InputIter last);
+            iterator insert(const_iterator position, const value_type& value);
+            iterator insert(const_iterator position, int n, const value_type& value);
+            iterator insert(const_iterator position, value_type&& value);
+            iterator insert(const_iterator position, std::initializer_list<T>& l);
+
             iterator erase_first(const T& item);
             iterator erase_first_unsorted(const T& item);
             reverse_iterator erase_last(const T& item);
@@ -120,10 +142,26 @@ namespace vstl
     }
 
     template <typename T>
+    vector<T>::vector(const std::initializer_list<T>& l) : m_size(l.size()), m_used_size(0)
+    {
+        m_data = new T[this->m_size];
+        for(auto i = l.begin(); i != l.end(); i++)
+            this->push_back(*i);
+    }
+
+    template <typename T>
+    template <typename Iter>
+    vector<T>::vector(Iter first, Iter last)
+    {
+        for(auto i = first; i != last; i++)
+            this->push_back(*i);
+    }
+
+    template <typename T>
     void vector<T>::push_back(const value_type& item)
     {
         if((m_used_size + 1) > m_size)
-            reallocate_space();
+            reallocate_space(m_size + 15);
         m_data[m_used_size++] = item;
     };
 
@@ -137,11 +175,11 @@ namespace vstl
     };
 
     template <typename T>
-    void vector<T>::reallocate_space()
+    void vector<T>::reallocate_space(int sSize)
     {
-        pointer ptr = new T[m_size + 15];
+        pointer ptr = new T[sSize];
+        m_size = sSize;
         std::memcpy(ptr, m_data, sizeof(T) * m_size);
-        m_size += 15;
         delete[] m_data;
         m_data = ptr;
     }
@@ -158,5 +196,29 @@ namespace vstl
         if(n >= m_used_size)
             return m_data[0];
         return m_data[n - 1];
+    }
+
+    template <typename T>
+    inline void vector<T>::resize(int n)
+    {
+        reallocate_space(m_size + n);
+    }
+
+    template <typename T>
+    void vector<T>::resize(int n, const_reference value)
+    {
+        if(n > m_size)
+        {
+            for(int i = m_size; i < n; i++)
+                m_data[m_used_size++] = T(value);       
+        }
+        this->resize(n);
+    }
+
+    template <typename T>
+    void vector<T>::clear() noexcept
+    {
+        reallocate_space(15);
+        m_used_size = 0;
     }
 }
