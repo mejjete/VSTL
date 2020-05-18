@@ -75,8 +75,8 @@ namespace vstl
             reference front() { return m_data[1]; };
             const_reference front() const { return m_data[1]; };
             
-            reference back() { return m_data[m_used_size - 1]; };
-            const_reference back() const { return m_data[m_used_size - 1]; };
+            reference back() { return m_data[m_used_size - 2]; };
+            const_reference back() const { return m_data[m_used_size - 2]; };
 
             reference at(int pos);
             const_reference at(int pos) const;
