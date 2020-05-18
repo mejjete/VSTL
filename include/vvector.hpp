@@ -139,11 +139,11 @@ namespace vstl
 
         vect.data = new T[15];
         vect.m_size = 15;
-        vect.m_used_size = 0; 
+        vect.m_used_size = 2; 
     }
 
     template <typename T>
-    vector<T>::vector(const std::initializer_list<T>& l) : m_size(l.size()), m_used_size(0)
+    vector<T>::vector(const std::initializer_list<T>& l) : m_size(l.size()), m_used_size(2)
     {
         m_data = new T[this->m_size];
         for(auto i = l.begin(); i != l.end(); i++)
@@ -163,13 +163,14 @@ namespace vstl
     {
         if((m_used_size + 1) > m_size)
             reallocate_space(m_size + 15);
-        data(1)[m_used_size++] = item;
+        m_data[m_used_size - 1] = item;
+        m_used_size++;
     };
 
     template <typename T>
     T vector<T>::pop_back()
     {
-        if(m_used_size > 0)
+        if(m_used_size > 2)
             return m_data[--m_used_size];
         else 
             return T(0);
@@ -224,12 +225,11 @@ namespace vstl
     }
 
     template <typename T>
-    void vector<T>::newPush(const value_type& item)
+    void vector<T>::assign(int n, const value_type& value)
     {
-        if((m_used_size + 1) > m_size)
-            reallocate_space(m_size + 15);
-        m_data[m_used_size - 1] = item;
-        m_used_size++;
+        m_used_size = 2;
+        for(int i = 0; i < n; i++)
+            this->push_back(value);
     }
 
     // template <typename T>
