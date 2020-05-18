@@ -54,9 +54,10 @@ namespace vstl
 
             void swap(self_type& vect);
             void assign(int n, const value_type& value);
+
             template <typename Iter>
             void assign(Iter first, Iter last);
-            void assign(std::initializer_list<T>& l);
+            inline void assign(std::initializer_list<T>& l);
             
             size_t max_size() { return (INT_MAX / sizeof(value_type)); };
             bool empty() const { return m_used_size == 0; };
@@ -66,7 +67,6 @@ namespace vstl
             void resize(int n, const_reference value);
             void resize(int n);
             void reserve(int n);
-            void set_capacity(int n);
             void shrink_to_fit();
 
             pointer data(int n = 0) { return m_data + n; };
@@ -221,7 +221,7 @@ namespace vstl
     void vector<T>::clear() noexcept
     {
         reallocate_space(15);
-        m_used_size = 0;
+        m_used_size = 2;
     }
 
     template <typename T>
@@ -230,6 +230,20 @@ namespace vstl
         m_used_size = 2;
         for(int i = 0; i < n; i++)
             this->push_back(value);
+    }
+
+    template <typename T>
+    template <typename Iter>
+    void vector<T>::assign(Iter first, Iter last)
+    {
+        for(auto i = first; i != last; i++) 
+            this->push_back(*i);
+    }
+
+    template <typename T>
+    inline void vector<T>::assign(std::initializer_list<T>& l)
+    {
+        this->assign(l.begin(), l.end());
     }
 
     // template <typename T>
