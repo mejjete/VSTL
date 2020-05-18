@@ -5,6 +5,7 @@
 #include <initializer_list>
 #include "iterators.hpp"
 #include "valgorithm.hpp"
+#include <climits>
 namespace vstl
 {
     template <typename T>
@@ -36,11 +37,11 @@ namespace vstl
             vector(Iter first, Iter last);
             ~vector() { delete[] m_data; };
 
-            iterator begin() { return &m_data[0]; };
-            iterator end() { return &m_data[m_used_size]; };
-            const_iterator cbegin() const { &m_data[0]; };
-            const_iterator cend() const { &m_data[m_used_size]; };
-            reverse_iterator rbegin() { return reverse_iterator(&m_data[m_used_size]); };
+            iterator begin() { return &m_data[1]; };
+            iterator end() { return &m_data[m_used_size - 1]; };
+            const_iterator cbegin() const { &m_data[1]; };
+            const_iterator cend() const { &m_data[m_used_size - 1]; };
+            reverse_iterator rbegin() { return reverse_iterator(&m_data[m_used_size - 1]); };
             reverse_iterator rend() { return reverse_iterator(&m_data[0]); };
             const_reverse_iterator crbegin() { return const_reverse_iterator(&m_data[m_used_size - 1]); };
             const_reverse_iterator crend() { return const_reverse_iterator(&m_data[0]); };
@@ -57,9 +58,9 @@ namespace vstl
             void assign(Iter first, Iter last);
             void assign(std::initializer_list<T>& l);
             
-
+            size_t max_size() { return (INT_MAX / sizeof(value_type)); };
             bool empty() const { return m_used_size == 0; };
-            int size() const { return m_used_size; }; 
+            int size() const { return m_used_size - 2; }; 
             int capacity() const { return m_size; };
 
             void resize(int n, const_reference value);
@@ -68,11 +69,11 @@ namespace vstl
             void set_capacity(int n);
             void shrink_to_fit();
 
-            pointer data() { return m_data; };
+            pointer data(int n = 0) { return m_data + n; };
             const_reference data() const noexcept;
 
-            reference front() { return m_data[0]; };
-            const_reference front() const { return m_data[0]; };
+            reference front() { return m_data[1]; };
+            const_reference front() const { return m_data[1]; };
             
             reference back() { return m_data[m_used_size - 1]; };
             const_reference back() const { return m_data[m_used_size - 1]; };
@@ -82,8 +83,9 @@ namespace vstl
 
             reference push_back();
             void push_back(const value_type& item);
+            void newPush(const value_type& item);
             void *push_back_initializer();
-            void push_back(value_type&& item);
+            void push_back(value_type&& item) { return push_back(static_cast<const value_type&>(item)); };
             T pop_back();
 
             template <typename ...Argc>
@@ -115,10 +117,9 @@ namespace vstl
     };
 
     template <typename T>
-    vector<T>::vector() : m_size(15), m_used_size(0)
+    vector<T>::vector() : m_size(15), m_used_size(2)
     {
         m_data = new T[m_size];
-        std::memset(m_data, 0, m_size * sizeof(T));
     }
 
     template <typename T>
@@ -162,7 +163,7 @@ namespace vstl
     {
         if((m_used_size + 1) > m_size)
             reallocate_space(m_size + 15);
-        m_data[m_used_size++] = item;
+        data(1)[m_used_size++] = item;
     };
 
     template <typename T>
@@ -221,4 +222,19 @@ namespace vstl
         reallocate_space(15);
         m_used_size = 0;
     }
+
+    template <typename T>
+    void vector<T>::newPush(const value_type& item)
+    {
+        if((m_used_size + 1) > m_size)
+            reallocate_space(m_size + 15);
+        m_data[m_used_size - 1] = item;
+        m_used_size++;
+    }
+
+    // template <typename T>
+    // vector<T>& operator+(const vector<T>& vect1, const vector<T>& vect2)
+    // {
+
+    // }
 }

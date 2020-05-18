@@ -1,6 +1,7 @@
 #pragma once
 namespace vstl
 {   
+    //iterator for sequence container
     template <typename T>
     class reverse_iterator
     {
@@ -19,17 +20,6 @@ namespace vstl
             bool operator!=(const self_type& rhs) { return data_ != rhs.data_; };
         private:
             pointer data_;
-    };
-
-    //applies to unary operations
-    template <typename InputIterator, class OutputIterator, class UnaryOperation>
-    OutputIterator transform(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation op)
-    {
-        while (first != last) {
-            *result = op(*first);
-            ++result; ++first;
-        }
-        return result;
     };
 }
 
