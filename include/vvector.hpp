@@ -41,9 +41,9 @@ namespace vstl
             iterator end() { return &m_data[m_used_size - 1]; };
             const_iterator cbegin() const { &m_data[1]; };
             const_iterator cend() const { &m_data[m_used_size - 1]; };
-            reverse_iterator rbegin() { return reverse_iterator(&m_data[m_used_size - 1]); };
+            reverse_iterator rbegin() { return reverse_iterator(&m_data[m_used_size - 2]); };
             reverse_iterator rend() { return reverse_iterator(&m_data[0]); };
-            const_reverse_iterator crbegin() { return const_reverse_iterator(&m_data[m_used_size - 1]); };
+            const_reverse_iterator crbegin() { return const_reverse_iterator(&m_data[m_used_size - 2]); };
             const_reverse_iterator crend() { return const_reverse_iterator(&m_data[0]); };
 
             reference operator[](int i);
@@ -67,7 +67,6 @@ namespace vstl
             void resize(int n, const_reference value);
             void resize(int n);
             void reserve(int n);
-            void shrink_to_fit();
 
             pointer data(int n = 0) { return m_data + n; };
             const_reference data() const noexcept;
@@ -81,10 +80,7 @@ namespace vstl
             reference at(int pos);
             const_reference at(int pos) const;
 
-            reference push_back();
             void push_back(const value_type& item);
-            void newPush(const value_type& item);
-            void *push_back_initializer();
             void push_back(value_type&& item) { return push_back(static_cast<const value_type&>(item)); };
             T pop_back();
 
@@ -246,6 +242,12 @@ namespace vstl
         this->assign(l.begin(), l.end());
     }
 
+    template <typename T>
+    template <typename ...Argc>
+    typename vector<T>::reference vector<T>::emplace(const_iterator pos, Argc&& ...argc)
+    {
+        
+    }
     // template <typename T>
     // vector<T>& operator+(const vector<T>& vect1, const vector<T>& vect2)
     // {
