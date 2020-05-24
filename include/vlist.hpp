@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VSTL_LIST
+    #define VSTL_LIST
 #include <iostream>
 #include <initializer_list>
 //#include "iterators.hpp"
@@ -111,7 +112,7 @@ namespace vstl
                     typedef std::forward_iterator_tag iterator_category;
                     reverse_iterator() : ptr_(nullptr) {};
                     reverse_iterator(pointer ptr) : ptr_(ptr) {}
-                    reverse_iterator& operator=(pointer ptr) { ptr_ = ptr; return *this; };
+                    self_type& operator=(pointer ptr) { ptr_ = ptr; return *this; };
                     self_type operator++();
                     self_type operator++(int junk); 
                     self_type operator--();
@@ -355,3 +356,4 @@ namespace vstl
         return pos;
     };
 }
+#endif

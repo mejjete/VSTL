@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VSTL_ITERATORS
+    #define VSTL_ITERATORS
 namespace vstl
 {   
     //iterator for sequence container
@@ -80,3 +81,5 @@ class random_access_iterator : bidirectional_iterator {
 class contiguous_iterator : random_access_iterator { //C++17
 }; //elements are stored contiguously in memory.
 */
+
+#endif

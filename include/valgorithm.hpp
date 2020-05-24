@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VSTL_ALGORITHM
+    #define VSTL_ALGORITHM
 namespace vstl
 {
     namespace alg
@@ -7,7 +8,7 @@ namespace vstl
         InputIter find(InputIter first, InputIter last, const T& value)
         {
             for(auto i = first; i != last; i++)
-                if(*i = value)
+                if(*i == value)
                     return i;
         }
 
@@ -25,7 +26,7 @@ namespace vstl
         }
 
         template <typename InputIter>
-        int count(InputIter first, InputIter last)
+        int distance(InputIter first, InputIter last)
         {
             int i;
             for(i = 0; first != last; i++, first++)
@@ -33,6 +34,15 @@ namespace vstl
             return i;  
         }
         
+        template <typename InputIter>
+        int count(InputIter first, InputIter last)
+        {
+            int c = 0;
+            for(auto i = first; i != last; i++)
+                c++;
+            return c;
+        }
+
         template <typename T>
         inline int count(T& cl) 
         { 
@@ -52,3 +62,4 @@ namespace vstl
         };
     };
 };
+#endif

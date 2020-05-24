@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VSTL_VECTOR
+    #define VSTL_VECTOR
 #include <iostream>
 #include <cstring>
 #include <stdexcept>
@@ -254,3 +255,4 @@ namespace vstl
 
     // }
 }
+#endif
