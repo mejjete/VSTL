@@ -48,6 +48,16 @@ namespace vstl
         { 
             return count(cl.begin(), cl.end()); 
         };
+        
+        template <typename InputIter, typename Expr>
+        int count_if(InputIter first, InputIter last, Expr funct)
+        {
+            int cEx = 0;
+            for(auto i = first; i != last; i++)
+                if(funct(*i))
+                    cEx++;
+            return cEx;
+        };
 
         //applies to unary operations
         template <typename InputInputIterator, class OutputInputIterator, class UnaryOperation>
