@@ -15,7 +15,7 @@ namespace vstl
     template <typename Arg1, typename Arg2, typename Result>
     struct binary_function : public unary_function<Arg1, Result>
     {
-        typedef Arg2 second_argumen_type;
+        typedef Arg2 second_argument_type;
     };
 }
 #endif
