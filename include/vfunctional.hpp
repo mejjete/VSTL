@@ -24,6 +24,7 @@ namespace vstl
     template <typename T>
     class function;
 
+    //wrapper for functions
     template <typename ReturnValue, typename ...Args>
     class function<ReturnValue(Args...)>
     {
@@ -58,6 +59,32 @@ namespace vstl
                     T t_;
             };
             std::unique_ptr<iCallable> callable_;
+    };
+
+    template <typename T>
+    class pointer_to_unary_function;
+
+    template <typename Arg, typename Result>
+    class pointer_to_unary_function<Result(Arg)> : public unary_function<Arg, Result>
+    {
+        private:
+            Result (*funct)(Arg);
+        public:
+            explicit pointer_to_unary_function(Result (*f)(Arg)) : funct(f) {};
+            Result operator()(Arg a1) const { return funct(a1); };
+    };
+
+    template <typename T>
+    class pointer_to_binary_function;
+
+    template <typename Arg1, typename Arg2, typename Result>
+    class pointer_to_binary_function<Result(Arg1, Arg2)> : public binary_function<Arg1, Arg2, Result>
+    {
+        private:
+            Result (*funct)(Arg1, Arg2);
+        public:
+            explicit pointer_to_binary_function(Result(*f)(Arg1, Arg2)) : funct(f) {}; 
+            Result operator()(Arg1 a1, Arg2 a2) const { return funct(a1, a2); };
     };
 }
 #endif
