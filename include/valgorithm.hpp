@@ -10,6 +10,12 @@ namespace vstl
             for(auto i = first; i != last; i++)
                 if(*i == value)
                     return i;
+        };
+
+        template <typename InputIter, typename T>
+        InputIter find_if(InputIter first, InputIter last, const T& value)
+        {
+            
         }
 
         template <typename InputIter, typename T>
@@ -17,13 +23,13 @@ namespace vstl
         {
             for(auto i = first; i != last; i++)
                 *i = item;
-        }
+        };
 
         template <typename T>
         inline void fill_out(T& cl)
         {
             fill_out(cl.begin(), cl.end());
-        }
+        };
 
         template <typename InputIter>
         int distance(InputIter first, InputIter last)
@@ -32,7 +38,7 @@ namespace vstl
             for(i = 0; first != last; i++, first++)
                 ;
             return i;  
-        }
+        };
         
         template <typename InputIter>
         int count(InputIter first, InputIter last)
@@ -41,7 +47,7 @@ namespace vstl
             for(auto i = first; i != last; i++)
                 c++;
             return c;
-        }
+        };
 
         template <typename T>
         inline int count(T& cl) 
@@ -69,6 +75,14 @@ namespace vstl
                 ++result; ++first;
             }
             return result;
+        };
+
+        template <typename InputIter, typename Function>
+        Function for_each(InputIter first, InputIter last, Function func)
+        {
+            for(auto i = first; i != last; i++)
+                func(*i);
+            return func;
         };
     };
 };
