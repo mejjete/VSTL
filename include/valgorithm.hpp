@@ -4,6 +4,46 @@ namespace vstl
 {
     namespace alg
     {
+        template <typename ForwardIterator>
+        ForwardIterator min_elem(ForwardIterator first, ForwardIterator last)
+        {
+            ForwardIterator minIt = first;
+            for(auto i = ++first; i != last; i++)
+                if(*i < *minIt)
+                    minIt = i;
+            return minIt;
+        };
+
+        template <typename ForwardIterator, typename Compare>
+        ForwardIterator min_element(ForwardIterator first, ForwardIterator last, Compare comp)
+        {
+            ForwardIterator minIt = first;
+            for(auto i = ++first; i != last; i++)
+                if(compare(*i, *minIt))
+                    minIt = i;
+            return minIt;
+        };
+
+        template <typename ForwardIterator, typename Compare>
+        ForwardIterator max_element(ForwardIterator first, ForwardIterator last)
+        {
+            ForwardIterator maxIt = first;
+            for(auto i = ++first; i != last; i++)
+                if(*maxIt > *i)
+                    maxIt = i;
+            return maxIt;
+        }
+
+        template <typename ForwardIterator, typename Compare>
+        ForwardIterator max_element(ForwardIterator first, ForwardIterator last, Compare comp)
+        {
+            ForwardIterator maxIt = first;
+            for(auto i = ++first; i != last; i++)
+                if(compare(*maxIt, *i))
+                    maxIt = i;
+            return maxIt;
+        };
+
         template <typename InputIter, typename T>
         InputIter find(InputIter first, InputIter last, const T& value)
         {
@@ -66,8 +106,8 @@ namespace vstl
         };
 
         //applies to unary operations
-        template <typename InputInputIterator, class OutputInputIterator, class UnaryOperation>
-        OutputInputIterator transform(InputInputIterator first, InputInputIterator last, OutputInputIterator result, UnaryOperation op)
+        template <typename InputIterator, class OutputIterator, class UnaryOperation>
+        OutputIterator transform(InputIterator first, InputIterator last, OutputIterator result, UnaryOperation op)
         {
             while (first != last) 
             {
