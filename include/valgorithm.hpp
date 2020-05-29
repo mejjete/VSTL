@@ -80,11 +80,32 @@ namespace vstl
                 if(*i == value)
                     return i;
         };
-
-        template <typename InputIter, typename T>
-        InputIter find_if(InputIter first, InputIter last, const T& value)
+        
+        template <typename InputIter, typename T, typename BinaryPredicate>
+        InputIter find(InputIter first, InputIter last, const T& value, BinaryPredicate pred)
         {
-            
+            while((first != last) && !pred(*first, value))
+			    ++first;
+		    return first;
+        };
+
+        template <typename InputIter, typename T, typename UnaryPredicate>
+        InputIter find_if(InputIter first, InputIter last, const T& value, UnaryPredicate pred)
+        {
+            while((firs != last) && !pred(*first))
+                first++;
+            return first;
+        };
+
+        template <typename InputIterator, typename UnaryPredicate>
+        inline InputIterator find_if_not(InputIterator first, InputIterator last, UnaryPredicate predicate)
+        {
+            for(; first != last; ++first)
+            {
+                if(!predicate(*first))
+                    return first;
+            }
+            return last;
         }
 
         template <typename InputIter, typename T>
@@ -145,6 +166,10 @@ namespace vstl
             }
             return result;
         };
+
+        //applies to binary operation
+        template <typename InputIterator, class OutputIterator, class BinaryOperation>
+        OutputIterator transform(InputIterator first, InputIterator last, OutputIterator result, BinaryOperation op);
 
         template <typename InputIter, typename Function>
         Function for_each(InputIter first, InputIter last, Function func)
