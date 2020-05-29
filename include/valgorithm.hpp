@@ -44,6 +44,35 @@ namespace vstl
             return maxIt;
         };
 
+        template <typename InputIter, typename Predicate>
+        inline bool all_of(InputIter fist, InputIter last, Predicate pred)
+        {
+            for(; first != last; first++)
+                if(!pred(*first))
+                    return false;
+            return true;
+        };
+
+        template <typename InputIter, typename Predicate>
+        inline bool any_of(InputIter first, InputIter last, Predicate pred)
+        {
+            for(; first != last; first++)
+            {
+                if(pred(*first))
+                    return true;
+            }
+            return false;
+        };
+
+        template <typename InputIter, typename Predicate>
+        inline bool none_of(InputIter first, InputIter last, Predicate pred)
+        {
+            for(; first != last; first++)
+            if(pred(*first))
+                return false;
+            return true;
+        }
+
         template <typename InputIter, typename T>
         InputIter find(InputIter first, InputIter last, const T& value)
         {
