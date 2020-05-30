@@ -1,5 +1,6 @@
 #ifndef VSTL_ITERATORS
     #define VSTL_ITERATORS
+#include "vstl_iterator_base.hpp"
 namespace vstl
 {   
     //iterator for sequence container
@@ -7,10 +8,12 @@ namespace vstl
     class reverse_iterator
     {
         public:
-            typedef reverse_iterator<T> self_type;
-            typedef T                   value_type;
-            typedef T*                  pointer;
-            typedef T&                  reference;
+            typedef vstl::bidirectional_iterator_tag    iterator_tag;
+            typedef reverse_iterator<T>                 self_type;
+            typedef T                                   value_type;
+            typedef T*                                  pointer;
+            typedef T&                                  reference;
+            typedef int                                 difference_type;
             reverse_iterator();
             reverse_iterator(T* data) : data_(data) {};
             self_type& operator=(pointer ptr) { data_ = ptr; };
