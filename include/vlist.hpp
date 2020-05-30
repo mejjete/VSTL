@@ -24,6 +24,7 @@ namespace vstl
             class iterator;
             class const_iterator;
             class reverse_iterator;
+            class const_reverse_iterator;
             list();
             list(const list<T>& list);
             list(list<T>&& list);
@@ -38,6 +39,9 @@ namespace vstl
             const_iterator cend() const { return const_iterator(tail); };
             reverse_iterator rbegin() { return reverse_iterator(tail); };
             reverse_iterator rend() { return nullptr; }; 
+            const_reverse_iterator crbegin() {  return const_reverse_iterator(tail); };
+            const_reverse_iterator crend() const { return nullptr; }; 
+
             iterator insert(iterator pos, T& value);
             iterator insert(iterator pos, T&& value);
             iterator insert(iterator pos, std::initializer_list<T> ilist);
@@ -56,13 +60,14 @@ namespace vstl
             T& back() noexcept { return tail->data; };
             void merge(list& l);
             void merge(list&& l);
+
             class iterator
             {
                 public:
-                    typedef                             iterator self_type;
-                    typedef                             T value_type;
-                    typedef                             T& reference;
-                    typedef                             Node* pointer;
+                    typedef iterator                    self_type;
+                    typedef T                           value_type;
+                    typedef T&                          reference;
+                    typedef Node*                       pointer;
                     typedef vstl::forward_iterator_tag  iterator_category;
                     typedef int                         difference_type;
                     iterator() : ptr_(nullptr) {};
@@ -82,7 +87,7 @@ namespace vstl
             class const_iterator
             {
                 public:
-                    typedef                             const_iterator self_type;
+                    typedef const_iterator              self_type;
                     typedef const T                     value_type;
                     typedef const T&                    reference;
                     typedef Node*                       pointer;
@@ -95,8 +100,8 @@ namespace vstl
                     self_type operator++(int junk);
                     self_type operator--();
                     self_type operator--(int junk);
-                    const reference operator*() { return ptr_->data; }
-                    const value_type operator->() { return ptr_->data; };
+                    reference operator*() { return ptr_->data; }
+                    value_type operator->() { return ptr_->data; };
                     bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_;}
                     bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_;}
                 private:
@@ -113,6 +118,30 @@ namespace vstl
                     typedef vstl::forward_iterator_tag  iterator_category;
                     reverse_iterator() : ptr_(nullptr) {};
                     reverse_iterator(pointer ptr) : ptr_(ptr) {}
+                    self_type& operator=(pointer ptr) { ptr_ = ptr; return *this; };
+                    self_type operator++();
+                    self_type operator++(int junk); 
+                    self_type operator--();
+                    self_type operator--(int junk);
+                    reference operator*() { return ptr_->data; }
+                    pointer operator->() { return ptr_->data; }
+                    bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
+                    bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+                private:
+                    pointer ptr_;
+            };
+
+            class const_reverse_iterator
+            {
+                public:
+                    typedef const_reverse_iterator      self_type;
+                    typedef const T                     value_type;
+                    typedef const T&                    reference;
+                    typedef Node*                       pointer;
+                    typedef int                         difference_type;
+                    typedef vstl::forward_iterator_tag  iterator_category;
+                    const_reverse_iterator() : ptr_(nullptr) {};
+                    const_reverse_iterator(pointer ptr) : ptr_(ptr) {}
                     self_type& operator=(pointer ptr) { ptr_ = ptr; return *this; };
                     self_type operator++();
                     self_type operator++(int junk); 
