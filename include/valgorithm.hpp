@@ -118,7 +118,7 @@ namespace vstl
         template <typename T>
         inline void fill_out(T& cl)
         {
-            fill_out(typename cl.begin(), typename cl.end());
+            fill_out(cl.begin(), cl.end());
         };
 
         template <typename InputIter>
@@ -142,7 +142,7 @@ namespace vstl
         template <typename T>
         inline int count(T& cl) 
         { 
-            return count(typename cl.begin(), typename cl.end()); 
+            return count(cl.begin(), cl.end()); 
         };
         
         template <typename InputIter, typename Expr>
