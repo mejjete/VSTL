@@ -8,13 +8,13 @@ namespace vstl
     class reverse_iterator
     {
         public:
-            typedef vstl::bidirectional_iterator_tag    iterator_tag;
+            typedef vstl::random_access_iterator_tag    iterator_category;
             typedef reverse_iterator<T>                 self_type;
             typedef T                                   value_type;
             typedef T*                                  pointer;
             typedef T&                                  reference;
             typedef int                                 difference_type;
-            reverse_iterator();
+            reverse_iterator() : data_(nullptr) {};
             reverse_iterator(T* data) : data_(data) {};
             self_type& operator=(pointer ptr) { data_ = ptr; };
             self_type operator++() { return reverse_iterator(data_ = data_ - 1); };
