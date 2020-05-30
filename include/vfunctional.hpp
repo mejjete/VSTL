@@ -21,6 +21,7 @@ namespace vstl
         return binder2nd<Operation>(op, typename Operation::second_argument_type(x));
     };
     
+    //empty junk class
     template <typename T>
     class function;
 

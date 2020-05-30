@@ -45,7 +45,7 @@ namespace vstl
         };
 
         template <typename InputIter, typename Predicate>
-        inline bool all_of(InputIter fist, InputIter last, Predicate pred)
+        inline bool all_of(InputIter first, InputIter last, Predicate pred)
         {
             for(; first != last; first++)
                 if(!pred(*first))
@@ -92,7 +92,7 @@ namespace vstl
         template <typename InputIter, typename T, typename UnaryPredicate>
         InputIter find_if(InputIter first, InputIter last, const T& value, UnaryPredicate pred)
         {
-            while((firs != last) && !pred(*first))
+            while((first != last) && !pred(*first))
                 first++;
             return first;
         };
@@ -118,7 +118,7 @@ namespace vstl
         template <typename T>
         inline void fill_out(T& cl)
         {
-            fill_out(cl.begin(), cl.end());
+            fill_out(typename cl.begin(), typename cl.end());
         };
 
         template <typename InputIter>
@@ -142,7 +142,7 @@ namespace vstl
         template <typename T>
         inline int count(T& cl) 
         { 
-            return count(cl.begin(), cl.end()); 
+            return count(typename cl.begin(), typename cl.end()); 
         };
         
         template <typename InputIter, typename Expr>
