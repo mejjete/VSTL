@@ -16,6 +16,7 @@ namespace vstl
             typedef int                                 difference_type;
             reverse_iterator() : data_(nullptr) {};
             reverse_iterator(T* data) : data_(data) {};
+            reverse_iterator(const self_type& iter) : data_(iter.data_) {};
             self_type& operator=(pointer ptr) { data_ = ptr; };
             self_type operator++() { return reverse_iterator(data_ = data_ - 1); };
             self_type operator++(int) { return operator++(); };
@@ -24,6 +25,35 @@ namespace vstl
             bool operator!=(const self_type& rhs) { return data_ != rhs.data_; };
         private:
             pointer data_;
+    };
+
+
+    //test sample for stupid tasks in my mind
+    struct base_iterator_tag;
+
+    //base iterator for most common container supported by the stl 
+    template <typename T>
+    class __base_iterator
+    {
+        public:
+            typedef __base_iterator                         self_type;
+            typedef T                                       container_type;
+            typedef int                                     difference_type;
+            typedef typename T::iterator::iterator_category iterator_category;
+            typedef typename T::iterator::value_type        value_type;
+            typedef typename T::iterator                    iterator_type;
+            __base_iterator(T& cont) : container(cont), iter(cont.begin()) {};
+            self_type& operator=(const self_type& i) { container = i.container; iter = i.iter; return *this; };
+            self_type& begin()   { iter = container.begin(); return *this; };
+            self_type& end()     { iter = container.end(); return *this; };
+            self_type& operator++() { iter = container.next(iter); return *this; };
+            self_type& operator++(int) { return operator++(); };    
+            value_type& operator*() { return *iter; };
+            bool operator==(self_type& i) { return this->iter == i.iter; };
+            bool operator!=(self_type& i) { return this->iter != i.iter; };
+        private:
+            container_type& container;
+            iterator_type iter;
     };
 }
 

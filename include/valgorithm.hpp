@@ -1,5 +1,6 @@
 #ifndef VSTL_ALGORITHM
     #define VSTL_ALGORITHM
+#include "iterators.hpp"
 namespace vstl
 {
     namespace alg
@@ -44,18 +45,25 @@ namespace vstl
             return maxIt;
         };
 
-        template <typename InputIter, typename T>
-        InputIter find(InputIter first, InputIter last, const T& value)
+        template <typename InputIter>
+        InputIter find(InputIter first, InputIter last, const typename iterator_traits<InputIter>::value_type& value)
         {
             for(auto i = first; i != last; i++)
                 if(*i == value)
                     return i;
+            return last;
         };
 
-        template <typename InputIter, typename T>
-        InputIter find_if(InputIter first, InputIter last, const T& value)
+        template <typename InputIter, typename UnaryPredicate>
+        InputIter find_if(InputIter first, InputIter last, UnaryPredicate pred)
         {
-            
+            while(first != last)
+            {
+                if(pred(*first))
+                    return first;
+                first++;
+            }
+            return last;
         }
 
         template <typename InputIter, typename T>

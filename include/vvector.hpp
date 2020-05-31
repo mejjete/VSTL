@@ -31,7 +31,9 @@ namespace vstl
                     typedef vstl::random_access_iterator_tag            iterator_category;
                     iterator() : m_vector(nullptr), m_index(0) {};
                     iterator(vstl::vector<T>* vect, int i = 2) : m_vector(vect), m_index(i) {};
+                    iterator(const self_type& iter) : m_vector(iter.m_vector), m_index(iter.m_index) {};
                     self_type& operator=(const vstl::vector<T>* vect) { m_vector = vect; m_index = vect.m_index; return *this; }; 
+                    self_type& operator=(const vstl::vector<T>::iterator& iter) { m_vector = iter.m_vector; m_index = iter.m_index; return *this; };
                     self_type& operator()(vstl::vector<T>* vect) { m_vector = vect; m_index = vect->m_index; return *this; };
                     self_type operator++()          { return self_type(m_vector, ++m_index); };
                     self_type operator++(int)       { return operator++(); };
@@ -41,6 +43,7 @@ namespace vstl
                     value_type operator->()         { return m_vector->operator[](m_index); };
                     bool operator==(const self_type& rhs) { return m_index == rhs.m_index; };
                     bool operator!=(const self_type& rhs) { return m_index != rhs.m_index; };
+                    const int position() { return m_index; };
                 private:
                     vstl::vector<T> *m_vector;
                     int m_index;
@@ -59,6 +62,7 @@ namespace vstl
                     typedef vstl::random_access_iterator_tag            iterator_category;
                     const_iterator() : m_vector(nullptr), m_index(0) {};
                     const_iterator(vstl::vector<T>* vect, int i = 2) : m_vector(vect), m_index(i) {};
+                    const_iterator(const self_type& iter) : m_vector(iter.m_vector), m_index(iter.m_index) {};
                     self_type& operator=(const vstl::vector<T>* vect) { m_vector = vect; m_index = vect.m_index; return *this; };  
                     self_type& operator()(vstl::vector<T>* vect) { m_vector = vect; m_index = vect->m_index; return *this; };
                     self_type operator++()          { return self_type(m_vector, ++m_index); };
@@ -158,6 +162,8 @@ namespace vstl
             void reset_lost_memory() noexcept;
             bool validate() const noexcept;
             int validate_iterator(const_iterator iter) const noexcept;
+
+            iterator next(iterator iter = begin()) { return iter++; };
     };
 
     template <typename T>
