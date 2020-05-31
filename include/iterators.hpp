@@ -27,10 +27,6 @@ namespace vstl
             pointer data_;
     };
 
-
-    //test sample for stupid tasks in my mind
-    struct base_iterator_tag;
-
     //base iterator for most common container supported by the stl 
     template <typename T>
     class __base_iterator
