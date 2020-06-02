@@ -163,7 +163,10 @@ namespace vstl
             bool validate() const noexcept;
             int validate_iterator(const_iterator iter) const noexcept;
 
-            iterator next(iterator iter = begin()) { return iter++; };
+            //__base_iterator features
+
+            iterator next(iterator iter = begin())  { return --iter; };
+            iterator prev(iterator iter = end())    { return --iter; }
     };
 
     template <typename T>
