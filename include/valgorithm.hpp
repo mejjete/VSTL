@@ -1,5 +1,6 @@
 #ifndef VSTL_ALGORITHM
     #define VSTL_ALGORITHM
+#include <algorithm>
 namespace vstl
 {
     namespace alg
@@ -96,6 +97,38 @@ namespace vstl
                 first++;
             return first;
         };
+
+        template <typename ForwardIterator, typename T>
+        ForwardIterator remove(ForwardIterator first, ForwardIterator last, const T& value)
+        {
+            ForwardIterator result = first;
+            while(first != last)
+            {
+                if(!(*first == value))
+                {
+                    *result = std::move(*first);
+                    ++result;
+                }
+                ++first;
+            }
+            return result;
+        };
+
+        // template <typename ForwardIterator, typename UnaryPredicate>
+        // ForwardIterator remove(ForwardIterator first, ForwardIterator last, UnaryPredicate pred)
+        // {
+        //     ForwardIterator result = first;
+        //     while(first != last)
+        //     {
+        //         if(!pred(*first))
+        //         {
+        //             *result = std::move(*first);
+        //             ++result;
+        //         }
+        //         ++first;
+        //     }
+        //     return result;
+        // };
 
         template <typename InputIterator, typename UnaryPredicate>
         inline InputIterator find_if_not(InputIterator first, InputIterator last, UnaryPredicate predicate)
