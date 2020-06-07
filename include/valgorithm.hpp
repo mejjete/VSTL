@@ -1,10 +1,6 @@
 #ifndef VSTL_ALGORITHM
     #define VSTL_ALGORITHM
-<<<<<<< HEAD
-#include <algorithm>
-=======
 #include "iterators.hpp"
->>>>>>> master
 namespace vstl
 {
     namespace alg
@@ -95,7 +91,6 @@ namespace vstl
 		    return first;
         };
 
-<<<<<<< HEAD
         template <typename InputIter, typename T, typename UnaryPredicate>
         InputIter find_if(InputIter first, InputIter last, const T& value, UnaryPredicate pred)
         {
@@ -143,16 +138,6 @@ namespace vstl
             {
                 if(!predicate(*first))
                     return first;
-=======
-        template <typename InputIter, typename UnaryPredicate>
-        InputIter find_if(InputIter first, InputIter last, UnaryPredicate pred)
-        {
-            while(first != last)
-            {
-                if(pred(*first))
-                    return first;
-                first++;
->>>>>>> master
             }
             return last;
         }
@@ -228,5 +213,5 @@ namespace vstl
             return func;
         };
     };
-};
+}
 #endif
