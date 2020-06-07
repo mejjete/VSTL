@@ -139,9 +139,6 @@ namespace vstl
     template <bool b, typename T = void>
     struct disable_if {};
 
-    template <typename T>
-    struct enable_if<false, T> { typedef T type; };
-
     template <bool B, typename T, typename F>
     struct conditional { typedef T type; };
 
