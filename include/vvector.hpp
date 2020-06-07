@@ -21,20 +21,19 @@ namespace vstl
             class iterator
             {
                 public:
+                    typedef iterator                                    self_type;
                     typedef T                                           value_type;
                     typedef T&                                          reference;
                     typedef T*                                          pointer;
                     typedef const T*                                    const_pointer;
                     typedef const T&                                    const_reference;
                     typedef int                                         difference_type;
-                    typedef iterator                                    self_type;
                     typedef vstl::random_access_iterator_tag            iterator_category;
                     iterator() : m_vector(nullptr), m_index(0) {};
                     iterator(vstl::vector<T>* vect, int i = 2) : m_vector(vect), m_index(i) {};
                     iterator(const self_type& iter) : m_vector(iter.m_vector), m_index(iter.m_index) {};
                     self_type& operator=(const vstl::vector<T>* vect) { m_vector = vect; m_index = vect.m_index; return *this; }; 
                     self_type& operator=(const vstl::vector<T>::iterator& iter) { m_vector = iter.m_vector; m_index = iter.m_index; return *this; };
-                    self_type& operator()(vstl::vector<T>* vect) { m_vector = vect; m_index = vect->m_index; return *this; };
                     self_type operator++()          { return self_type(m_vector, ++m_index); };
                     self_type operator++(int)       { return operator++(); };
                     self_type operator--()          { return self_type(m_vector, --m_index); };
@@ -44,6 +43,7 @@ namespace vstl
                     bool operator==(const self_type& rhs) { return m_index == rhs.m_index; };
                     bool operator!=(const self_type& rhs) { return m_index != rhs.m_index; };
                     const int position() { return m_index; };
+                    friend reference operator*(self_type& lhs, int i) { lhs.m_index += i; return lhs.m_vector->operator[](lhs.m_index); };
                 private:
                     vstl::vector<T> *m_vector;
                     int m_index;
@@ -64,12 +64,11 @@ namespace vstl
                     const_iterator(vstl::vector<T>* vect, int i = 2) : m_vector(vect), m_index(i) {};
                     const_iterator(const self_type& iter) : m_vector(iter.m_vector), m_index(iter.m_index) {};
                     self_type& operator=(const vstl::vector<T>* vect) { m_vector = vect; m_index = vect.m_index; return *this; };  
-                    self_type& operator()(vstl::vector<T>* vect) { m_vector = vect; m_index = vect->m_index; return *this; };
                     self_type operator++()          { return self_type(m_vector, ++m_index); };
                     self_type operator++(int)       { return operator++(); };
                     self_type operator--()          { return self_type(m_vector, --m_index); };
                     self_type operator--(int)       { return operator--(); };
-                    const reference operator*()     { return m_vector->operator[](m_index); };
+                    const_reference operator*()     { return m_vector->operator[](m_index); };
                     const value_type operator->()   { return m_vector->operator[](m_index); };
                     bool operator==(const self_type& rhs) { return m_index == rhs.m_index; };
                     bool operator!=(const self_type& rhs) { return m_index != rhs.m_index; };
@@ -91,12 +90,12 @@ namespace vstl
 
             iterator begin() { return iterator(this); };
             iterator end()   { return iterator(this, m_used_size); };
-            const_iterator cbegin() { return const_iterator(this); };
-            const_iterator cend()   { return const_iterator(this, m_used_size); };
+            const_iterator cbegin() const { return const_iterator(this); };
+            const_iterator cend()   const { return const_iterator(this, m_used_size); };
             reverse_iterator rbegin() { return reverse_iterator(&m_data[m_used_size - 2]); };
             reverse_iterator rend()   { return reverse_iterator(&m_data[0]); };
-            const_reverse_iterator crbegin() { return const_reverse_iterator(&m_data[m_used_size - 2]); };
-            const_reverse_iterator crend()   { return const_reverse_iterator(&m_data[0]); };
+            const_reverse_iterator crbegin() const { return const_reverse_iterator(&m_data[m_used_size - 2]); };
+            const_reverse_iterator crend()   const { return const_reverse_iterator(&m_data[0]); };
 
             T& operator[](int i);
             const T& operator[](int i) const;
