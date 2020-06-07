@@ -43,7 +43,8 @@ namespace vstl
                     bool operator==(const self_type& rhs) { return m_index == rhs.m_index; };
                     bool operator!=(const self_type& rhs) { return m_index != rhs.m_index; };
                     const int position() { return m_index; };
-                    friend reference operator*(self_type& lhs, int i) { lhs.m_index += i; return lhs.m_vector->operator[](lhs.m_index); };
+                    friend self_type& operator+(self_type &lhs, int i) { lhs.m_index += i; return lhs; };
+                    friend self_type& operator-(self_type &lhs, int i) { lhs.m_index -= i; return lhs; };
                 private:
                     vstl::vector<T> *m_vector;
                     int m_index;
@@ -72,6 +73,8 @@ namespace vstl
                     const value_type operator->()   { return m_vector->operator[](m_index); };
                     bool operator==(const self_type& rhs) { return m_index == rhs.m_index; };
                     bool operator!=(const self_type& rhs) { return m_index != rhs.m_index; };
+                    friend self_type& operator+(self_type &lhs, int i) { lhs.m_index += i; return lhs; };
+                    friend self_type& operator-(self_type &lhs, int i) { lhs.m_index -= i; return lhs; };
                 private:
                     vstl::vector<T> *m_vector;
                     int m_index;
