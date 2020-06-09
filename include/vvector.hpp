@@ -43,7 +43,8 @@ namespace vstl
                     bool operator==(const self_type& rhs) { return m_index == rhs.m_index; };
                     bool operator!=(const self_type& rhs) { return m_index != rhs.m_index; };
                     const int position() { return m_index; };
-                    friend reference operator*(self_type& lhs, int i) { lhs.m_index += i; return lhs.m_vector->operator[](lhs.m_index); };
+                    friend self_type& operator+(self_type &lhs, int i) { lhs.m_index += i; return lhs; };
+                    friend self_type& operator-(self_type &lhs, int i) { lhs.m_index -= i; return lhs; };
                 private:
                     vstl::vector<T> *m_vector;
                     int m_index;
@@ -72,6 +73,8 @@ namespace vstl
                     const value_type operator->()   { return m_vector->operator[](m_index); };
                     bool operator==(const self_type& rhs) { return m_index == rhs.m_index; };
                     bool operator!=(const self_type& rhs) { return m_index != rhs.m_index; };
+                    friend self_type& operator+(self_type &lhs, int i) { lhs.m_index += i; return lhs; };
+                    friend self_type& operator-(self_type &lhs, int i) { lhs.m_index -= i; return lhs; };
                 private:
                     vstl::vector<T> *m_vector;
                     int m_index;
@@ -104,14 +107,18 @@ namespace vstl
             vector<T>& operator=(vector<T>&& vect);
 
             void swap(vector<T>& vect);
-            void assign(int n, const T& value);
 
             template <typename Iter>
             void assign(Iter first, Iter last);
+
+            template <typename OutputIter>
+            void assign(iterator first, iterator last, OutputIter output);
+
+            void assign(int n, const T& value);
             inline void assign(std::initializer_list<T>& l);
             
             size_t max_size() { return (INT_MAX / sizeof(T)); };
-            bool empty() const { return m_used_size == 0; };
+            bool empty() const { return m_used_size == 2; };
             int size() const { return m_used_size - 2; }; 
             int capacity() const { return m_size; };
 
@@ -164,8 +171,11 @@ namespace vstl
 
             //__base_iterator features
 
-            iterator next(iterator iter = begin())  { return --iter; };
-            iterator prev(iterator iter = end())    { return --iter; }
+            iterator next(iterator iter = begin())  { return ++iter; };
+            iterator prev(iterator iter = end())    { return --iter; };
+
+            template <typename U>
+            friend vector<T> operator+(const vector<T>& v1, const vector<T>& v2) {};
     };
 
     template <typename T>
@@ -189,7 +199,7 @@ namespace vstl
         this->m_used_size = vect.m_used_size;
         this->m_size = vect.m_size;
 
-        vect.data = new T[15];
+        vect.m_data = new T[15];
         vect.m_size = 15;
         vect.m_used_size = 2; 
     }
@@ -204,8 +214,9 @@ namespace vstl
 
     template <typename T>
     template <typename Iter>
-    vector<T>::vector(Iter first, Iter last)
+    vector<T>::vector(Iter first, Iter last) : m_size(15), m_used_size(2)
     {
+        reallocate_space(15);
         for(auto i = first; i != last; i++)
             this->push_back(*i);
     }
@@ -299,15 +310,36 @@ namespace vstl
     }
 
     template <typename T>
+    template <typename OutputIter>
+    void vector<T>::assign(iterator first, iterator last, OutputIter output)
+    {
+        for(auto i = first; i != last; i++)
+            *i = *output++;
+    };
+
+    template <typename T>
     template <typename ...Argc>
     T& vector<T>::emplace(const_iterator pos, Argc&& ...argc)
     {
         
-    }
-    // template <typename T>
-    // vector<T>& operator+(const vector<T>& vect1, const vector<T>& vect2)
-    // {
+    };
 
-    // }
+    // template <typename U>
+    // vector<U> operator+(const vector<U>& v1)
+    // {
+    //     // vector<U> result;
+    //     // std::memcpy(result, v1.m_data, sizeof(T) * v1.m_used_size);
+    //     // std::memcpy(result + v1.m_used_size, v2.m_data, sizeof(T) * v2.m_used_size);
+    //     // result.m_size = result.m_used_size = v1.m_used_size + v2.m_used_size;
+    //     // return result;
+    // };
+
+    template <typename U>
+    vector<U> operator+(vector<U>& v1, vector<U>& v2)
+    {
+        vector<U> result(v1.begin(), v1.end());
+        result.assign(v2.begin(), v2.end());
+        return result;
+    };
 }
 #endif
