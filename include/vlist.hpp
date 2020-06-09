@@ -82,8 +82,10 @@ namespace vstl
                     self_type operator--(int junk);
                     reference operator*() { return ptr_->data; }
                     value_type operator->() { return ptr_->data; };
-                    bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_;}
-                    bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_;}
+                    bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
+                    bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
+                    friend self_type& operator+(self_type& lhs, int i) {};
+                    friend self_type& operator-(self_type& lhs, int i) {};
                 private:
                     pointer ptr_;
             };
