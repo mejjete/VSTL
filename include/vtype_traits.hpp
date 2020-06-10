@@ -3,7 +3,7 @@
 #include <cstddef>
 namespace vstl
 {
-    #define VSTL_PRIMARY_TYPE_CATEGORIE
+    #define VSTL_PRIMARY_TYPE_CATEGORIES
     #define VSTL_MISCELLANIOUS_TRANSFORMATION
     #define VSTL_TYPE_PROPERTIES
     #define VSTL_COMPOSITE_TYPE_CATEGORIES
@@ -23,7 +23,7 @@ namespace vstl
     typedef integral_constant<bool, false>  false_type;
 
 
-    #ifdef VSTL_PRIMARY_TYPE_CATEGORIE
+    #ifdef VSTL_PRIMARY_TYPE_CATEGORIES
 
     //is_array
     template <typename T>
@@ -40,7 +40,7 @@ namespace vstl
     template <typename T>
     struct is_pointer
     {
-        static const bool value = false
+        static const bool value = false;
     };
 
     template <typename T>
@@ -135,15 +135,28 @@ namespace vstl
     template <typename T>
     struct enable_if<true, T> { typedef T type; };
 
+    template <bool B, typename T = void>
+    using enable_if_t = typename enable_if<B, T>::type;
+
     //disable if
     template <bool b, typename T = void>
     struct disable_if {};
 
+    template <typename T>
+    struct disable_if<false, T> { typedef T type; };
+
+    template <bool B, typename T>
+    using disable_if_t = typename enable_if<B, T>::type;
+
+    //conditional
     template <bool B, typename T, typename F>
     struct conditional { typedef T type; };
 
     template <typename T, typename F>
     struct conditional<false, T, F> { typedef F type; };
+
+    template <bool B, typename T, typename F>
+    using conditional_t = typename conditional<B, T, F>::type;
 
     #endif
 }
