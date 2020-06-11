@@ -36,6 +36,12 @@ namespace vstl
     template <typename T, size_t F>
     struct is_array<T[F]> : public true_type {};
 
+    template <typename T>
+    struct is_floating_point : public integral_constant<bool, 
+        is_same<float, typename remove_cv_t<T>, value> || 
+        is_same<double, typename removecv_t<T>, value> ||
+        is_same<long double, typename remove_cv_t<T>, value>> {};
+
     //is pointer
     template <typename T>
     struct is_pointer
