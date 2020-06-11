@@ -1,6 +1,8 @@
 #ifndef VSTL_TYPE_TRAITS
     #define VSTL_TYPE_TRAITS
 #include <cstddef>
+#include <cstdint>
+#include <cuchar>
 namespace vstl
 {
     #define VSTL_PRIMARY_TYPE_CATEGORIES
@@ -23,6 +25,80 @@ namespace vstl
     typedef integral_constant<bool, true>   true_type;
     typedef integral_constant<bool, false>  false_type;
 
+    #ifdef VSTL_CONST_VOLATILE_MODIFICATION
+
+    //remove_cv
+    template <typename T>
+    struct remove_cv
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_cv<const T>
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_cv<volatile T>
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_cv<const volatile T>
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    using remove_cv_t = typename remove_cv<T>::type;
+
+    //remove_const
+    template <typename T>
+    struct remove_const
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_const<const T>
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    using remove_const_t = typename remove_const<T>::type;
+
+    //remove volatile
+    template <typename T>
+    struct remove_volatile
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_volatile<volatile T>
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    using remove_volatile_t = typename remove_volatile<T>::type;
+
+    #endif
+
+    #ifdef VSTL_TYPE_RELATIONSHIP
+
+    //is-same
+    template <typename T, typename U>
+    struct is_same : public vstl::false_type {};
+
+    template <typename T>
+    struct is_same<T, T> : public vstl::true_type {};
+
+    #endif
 
     #ifdef VSTL_PRIMARY_TYPE_CATEGORIES
 
@@ -37,11 +113,30 @@ namespace vstl
     struct is_array<T[F]> : public true_type {};
 
     template <typename T>
-    struct is_floating_point : public integral_constant<bool, 
-        is_same<float, typename remove_cv_t<T>, value> || 
-        is_same<double, typename removecv_t<T>, value> ||
-        is_same<long double, typename remove_cv_t<T>, value>> {};
+    struct is_floating_point : vstl::integral_constant<bool,
+        vstl::is_same<float, typename vstl::remove_cv<T>::type>::value  ||
+        vstl::is_same<double, typename vstl::remove_cv<T>::type>::value  ||
+        vstl::is_same<long double, typename vstl::remove_cv<T>::type>::value> {};
 
+    //is_integral
+    template <typename T>
+    struct is_integral : public vstl::integral_constant<bool, 
+        vstl::is_same<bool, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<char, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<char16_t, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<char32_t, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<wchar_t, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<signed char, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<short int, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<int, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<long int, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<long long int, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<unsigned char, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<unsigned short int, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<unsigned int, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<unsigned long int, typename vstl::remove_cv<T>::type>::value ||
+        vstl::is_same<unsigned long long int, typename vstl::remove_cv<T>::type>::value> {};
+    
     //is pointer
     template <typename T>
     struct is_pointer
@@ -119,19 +214,6 @@ namespace vstl
 
     #endif
 
-
-    #ifdef VSTL_TYPE_RELATIONSHIP
-
-    //is same value
-    template <typename T, typename U>
-    struct is_same : public vstl::false_type {};
-
-    template <typename T>
-    struct is_same<T, T> : public vstl::true_type {};
-
-    #endif
-
-
     #ifdef VSTL_MISCELLANIOUS_TRANSFORMATION
 
     //enable if
@@ -166,69 +248,5 @@ namespace vstl
 
     #endif
 
-    #ifdef VSTL_CONST_VOLATILE_MODIFICATION
-
-    //remove_cv
-    template <typename T>
-    struct remove_cv
-    {
-        typedef T type;
-    };
-
-    template <typename T>
-    struct remove_cv<const T>
-    {
-        typedef T type;
-    };
-
-    template <typename T>
-    struct remove_cv<volatile T>
-    {
-        typedef T type;
-    };
-
-    template <typename T>
-    struct remove_cv<const volatile T>
-    {
-        typedef T type;
-    };
-
-    template <typename T>
-    using remove_cv_t = remove_cv<T>::type;
-
-    //remove_const
-    template <typename T>
-    struct remove_const
-    {
-        typedef T type;
-    };
-
-    template <typename T>
-    struct remove_const<const T>
-    {
-        typedef T type;
-    };
-
-    template <typename T>
-    using remove_const_t = remove_const<T>::type;
-
-    //remove volatile
-
-    template <typename T>
-    struct remove_volatile
-    {
-        typedef T type;
-    };
-
-    template <typename T>
-    struct remove_volatile<volatile T>
-    {
-        typedef T type;
-    };
-
-    template <typename T>
-    using remove_volatile_t = remove_volatile<T>::type;
-
-    #endif
 }
 #endif
