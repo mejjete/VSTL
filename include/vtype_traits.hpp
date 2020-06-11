@@ -118,6 +118,9 @@ namespace vstl
         vstl::is_same<double, typename vstl::remove_cv<T>::type>::value  ||
         vstl::is_same<long double, typename vstl::remove_cv<T>::type>::value> {};
 
+    template <typename T>
+    using is_floating_point_v = typename vstl::is_floating_point<T>::value;
+
     //is_integral
     template <typename T>
     struct is_integral : public vstl::integral_constant<bool, 
@@ -137,6 +140,9 @@ namespace vstl
         vstl::is_same<unsigned long int, typename vstl::remove_cv<T>::type>::value ||
         vstl::is_same<unsigned long long int, typename vstl::remove_cv<T>::type>::value> {};
     
+    template <typename T>
+    using is_integral_v = typename vstl::is_integral<T>::value;
+
     //is_arithmetic
     template <typename T>
     struct is_arithmetic : vstl::integral_constant<bool, 
