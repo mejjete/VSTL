@@ -9,6 +9,7 @@ namespace vstl
     #define VSTL_COMPOSITE_TYPE_CATEGORIES
     #define VSTL_TYPE_RELATIONSHIP
     #define VSTL_MISCELLANIOUS_TRANSFORMATION
+    #define VSTL_CONST_VOLATILE_MODIFICATION
  
     template <typename T, T v>
     struct integral_constant
@@ -34,7 +35,6 @@ namespace vstl
     
     template <typename T, size_t F>
     struct is_array<T[F]> : public true_type {};
-
 
     //is pointer
     template <typename T>
@@ -157,6 +157,71 @@ namespace vstl
 
     template <bool B, typename T, typename F>
     using conditional_t = typename conditional<B, T, F>::type;
+
+    #endif
+
+    #ifdef VSTL_CONST_VOLATILE_MODIFICATION
+
+    //remove_cv
+    template <typename T>
+    struct remove_cv
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_cv<const T>
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_cv<volatile T>
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_cv<const volatile T>
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    using remove_cv_t = remove_cv<T>::type;
+
+    //remove_const
+    template <typename T>
+    struct remove_const
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_const<const T>
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    using remove_const_t = remove_const<T>::type;
+
+    //remove volatile
+
+    template <typename T>
+    struct remove_volatile
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_volatile<volatile T>
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    using remove_volatile_t = remove_volatile<T>::type;
 
     #endif
 }
