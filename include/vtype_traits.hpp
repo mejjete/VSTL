@@ -13,6 +13,15 @@ namespace vstl
     #define VSTL_MISCELLANIOUS_TRANSFORMATION
     #define VSTL_CONST_VOLATILE_MODIFICATION
  
+    namespace detail
+    {
+        template <typename T>
+        char test(int T::*);
+        struct two { char c[2]; };
+        template <typename T>
+        two test(...);
+    }
+
     template <typename T, T v>
     struct integral_constant
     {
@@ -147,6 +156,14 @@ namespace vstl
     template <typename T>
     struct is_arithmetic : vstl::integral_constant<bool, 
         vstl::is_integral<T>::value || vstl::is_floating_point<T>::value> {};
+
+    //is union
+    template <typename T>
+    struct is_union : public vstl::integral_constant<bool, __is_union(T)> {};
+
+    //is class
+    template <typename T>
+    struct is_class : public vstl::integral_constant<bool, sizeof(vstl::detail::test<T>(0)) == 1 && !vstl::is_union<T>::value> {};
 
     //is pointer
     template <typename T>
