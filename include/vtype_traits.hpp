@@ -109,6 +109,85 @@ namespace vstl
 
     #endif
 
+    #ifdef VSTL_TYPE_PROPERTIES
+
+    //is const value
+    template <typename T>
+    struct is_const : public vstl::false_type {};
+
+    template <typename T>
+    struct is_const<const T> : public vstl::true_type {};
+
+    //is volatile
+    template <typename T>
+    struct is_volatile : public vstl::false_type {};
+
+    template <typename T>
+    struct is_volatile<volatile T> : public vstl::true_type {};
+
+    template <typename T>
+    struct is_volatile<const volatile T> : public vstl::false_type {};
+
+    #endif
+
+    #ifdef VSTL_COMPOSITE_TYPE_CATEGORIES
+
+    //is reference
+    template <typename T>
+    struct is_reference : public vstl::false_type {};
+
+    template <typename T>
+    struct is_reference<T&> : public vstl::true_type {};
+
+    template <typename T>
+    struct is_reference<const T&> : public vstl::true_type {};
+
+    //is member pointer
+    template <typename T>
+    struct is_member_pointer_helper : public vstl::false_type {};
+
+    template <typename T, typename U>
+    struct is_member_pointer_helper<T U::*> : public vstl::true_type {};
+
+    template <typename T>
+    struct is_member_pointer : public vstl::is_member_pointer_helper<typename vstl::remove_cv<T>::type> {};
+
+    #endif
+
+    #ifdef VSTL_MISCELLANIOUS_TRANSFORMATION
+
+    //enable if
+    template <bool B, typename T = void>
+    struct enable_if {};
+    
+    template <typename T>
+    struct enable_if<true, T> { typedef T type; };
+
+    template <bool B, typename T = void>
+    using enable_if_t = typename enable_if<B, T>::type;
+
+    //disable if
+    template <bool b, typename T = void>
+    struct disable_if {};
+
+    template <typename T>
+    struct disable_if<false, T> { typedef T type; };
+
+    template <bool B, typename T>
+    using disable_if_t = typename enable_if<B, T>::type;
+
+    //conditional
+    template <bool B, typename T, typename F>
+    struct conditional { typedef T type; };
+
+    template <typename T, typename F>
+    struct conditional<false, T, F> { typedef F type; };
+
+    template <bool B, typename T, typename F>
+    using conditional_t = typename conditional<B, T, F>::type;
+
+    #endif
+
     #ifdef VSTL_PRIMARY_TYPE_CATEGORIES
 
     //is_array
@@ -205,7 +284,6 @@ namespace vstl
     };
 
     //is function
-
     template <typename T>
     struct is_function : public vstl::false_type {};
 
@@ -252,75 +330,21 @@ namespace vstl
     template <typename RetType, typename... Args>
     struct is_function<RetType(Args...) const volatile &&> : public vstl::true_type {};
 
-    #endif
-
-    #ifdef VSTL_TYPE_PROPERTIES
-
-    //is const value
+     //is member function pointer
     template <typename T>
-    struct is_const : public vstl::false_type {};
+    struct is_member_function_pointer_helper : public vstl::false_type {};
 
-    template <typename T>
-    struct is_const<const T> : public vstl::true_type {};
-
-    //is volatile
-    template <typename T>
-    struct is_volatile : public vstl::false_type {};
+    template <typename T, typename U>
+    struct is_member_function_pointer_helper<T U::*> : vstl::is_function<T> {};
 
     template <typename T>
-    struct is_volatile<volatile T> : public vstl::true_type {};
+    struct is_member_function_pointer : vstl::is_member_function_pointer_helper
+    <typename vstl::remove_cv<T>::type> {};
 
+    //is member object pointer
     template <typename T>
-    struct is_volatile<const volatile T> : public vstl::false_type {};
-
-    #endif
-
-    
-    #ifdef VSTL_COMPOSITE_TYPE_CATEGORIES
-
-    //is reference
-    template <typename T>
-    struct is_reference : public vstl::false_type {};
-
-    template <typename T>
-    struct is_reference<T&> : public vstl::true_type {};
-
-    template <typename T>
-    struct is_reference<const T&> : public vstl::true_type {};
-
-    #endif
-
-    #ifdef VSTL_MISCELLANIOUS_TRANSFORMATION
-
-    //enable if
-    template <bool B, typename T = void>
-    struct enable_if {};
-    
-    template <typename T>
-    struct enable_if<true, T> { typedef T type; };
-
-    template <bool B, typename T = void>
-    using enable_if_t = typename enable_if<B, T>::type;
-
-    //disable if
-    template <bool b, typename T = void>
-    struct disable_if {};
-
-    template <typename T>
-    struct disable_if<false, T> { typedef T type; };
-
-    template <bool B, typename T>
-    using disable_if_t = typename enable_if<B, T>::type;
-
-    //conditional
-    template <bool B, typename T, typename F>
-    struct conditional { typedef T type; };
-
-    template <typename T, typename F>
-    struct conditional<false, T, F> { typedef F type; };
-
-    template <bool B, typename T, typename F>
-    using conditional_t = typename conditional<B, T, F>::type;
+    struct is_member_object_pointer : public vstl::integral_constant<bool, 
+        vstl::is_member_pointer<T>::value && !vstl::is_member_function_pointer<T>::value> {};
 
     #endif
 
