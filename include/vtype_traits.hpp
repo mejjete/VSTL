@@ -185,7 +185,7 @@ namespace vstl
         static const bool value = false;
     };
 
-    template<>
+    template <>
     struct is_void<void>
     {
         static const bool value = true;
@@ -203,6 +203,54 @@ namespace vstl
     {
         static const bool value = true;
     };
+
+    //is function
+
+    template <typename T>
+    struct is_function : public vstl::false_type {};
+
+    template <typename RetType, typename... Args>
+    struct is_funciton : public vstl::false_type {};
+
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...)> : public vstl::true_type {};
+
+    //for function with const/volatile quialifiers
+    
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) const> : public vstl::true_type {};
+
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) volatile> : public vstl::true_type {};
+    
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) const volatile> : public vstl::true_type {};
+
+    //for function with const/volatile references
+
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) &> : public vstl::true_type {};
+
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) const &> : public vstl::true_type {};
+
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) volatile &> : public vstl::true_type {};
+
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) const volatile &> : public vstl::true_type {};
+
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) &&> : public vstl::true_type {};
+
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) const &&> : public vstl::true_type {};
+
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) volatile &&> : public vstl::true_type {};
+
+    template <typename RetType, typename... Args>
+    struct is_function<RetType(Args...) const volatile &&> : public vstl::true_type {};
 
     #endif
 
