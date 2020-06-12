@@ -236,14 +236,6 @@ namespace vstl
     struct is_arithmetic : vstl::integral_constant<bool, 
         vstl::is_integral<T>::value || vstl::is_floating_point<T>::value> {};
 
-    //is union
-    template <typename T>
-    struct is_union : public vstl::integral_constant<bool, __is_union(T)> {};
-
-    //is class
-    template <typename T>
-    struct is_class : public vstl::integral_constant<bool, sizeof(vstl::detail::test<T>(0)) == 1 && !vstl::is_union<T>::value> {};
-
     //is pointer
     template <typename T>
     struct is_pointer
@@ -346,7 +338,28 @@ namespace vstl
     struct is_member_object_pointer : public vstl::integral_constant<bool, 
         vstl::is_member_pointer<T>::value && !vstl::is_member_function_pointer<T>::value> {};
 
-    #endif
+    //is union
+    template <typename T>
+    struct is_union : public vstl::integral_constant<bool, __is_union(T)> {};
 
+    //is class
+    template <typename T>
+    struct is_class : public vstl::integral_constant<bool, sizeof(vstl::detail::test<T>(0)) == 1 && !vstl::is_union<T>::value> {};
+
+    //is_enum
+    template <typename T>
+    struct is_enum : public vstl::integral_constant<bool, 
+        !vstl::is_void<T>::value &&
+        !vstl::is_integral<T>::value &&
+        !vstl::is_floating_point<T>::value &&
+        !vstl::is_array<T>::value &&
+        !vstl::is_pointer<T>::value &&
+        !vstl::is_reference<T>::value &&
+        !vstl::is_member_pointer<T>::value &&
+        !vstl::is_union<T>::value &&
+        !vstl::is_class<T>::value &&
+        !vstl::is_function<T>::value> {};
+
+    #endif
 }
 #endif
