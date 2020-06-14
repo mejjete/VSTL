@@ -126,7 +126,7 @@ namespace vstl
     struct is_volatile<volatile T> : public vstl::true_type {};
 
     template <typename T>
-    struct is_volatile<const volatile T> : public vstl::false_type {};
+    struct is_volatile<const volatile T> : public vstl::true_type {};
 
     #endif
 
