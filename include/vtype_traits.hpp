@@ -236,6 +236,21 @@ namespace vstl
     struct is_arithmetic : vstl::integral_constant<bool, 
         vstl::is_integral<T>::value || vstl::is_floating_point<T>::value> {};
 
+    //is lvalue reference
+    template <typename T>
+    struct is_lvalue_reference : public vstl::false_type {};
+
+    template <typename T>
+    struct is_lvalue_reference<T&> : public vstl::true_type {};
+
+    //is rvalue reference
+
+    template <typename T>
+    struct is_rvalue_reference : public vstl::false_type {};
+
+    template <typename T>
+    struct is_rvalue_reference<T&&> : public vstl::true_type {};
+
     //is pointer
     template <typename T>
     struct is_pointer
