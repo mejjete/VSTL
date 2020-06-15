@@ -3,19 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <cuchar>
-#include "vtraits_container.hpp"
 namespace vstl
 {
-    #define VSTL_PRIMARY_TYPE_CATEGORIES
-    #define VSTL_MISCELLANIOUS_TRANSFORMATION
-    #define VSTL_TYPE_PROPERTIES
-    #define VSTL_COMPOSITE_TYPE_CATEGORIES
-    #define VSTL_TYPE_RELATIONSHIP
-    #define VSTL_MISCELLANIOUS_TRANSFORMATION
-    #define VSTL_CONST_VOLATILE_MODIFICATION
-    #define VSTL_REFERENCE_MODIFICATION
-    #define VSTL_ARRAY_MODIFICATION
-    #define VSTL_POINTER_MODIFICATION
 
     template <typename T, T v>
     struct integral_constant
@@ -28,8 +17,6 @@ namespace vstl
 
     typedef integral_constant<bool, true>   true_type;
     typedef integral_constant<bool, false>  false_type;
-
-    #ifdef VSTL_REFERENCE_MODIFICATION
 
     //remove reference
     template <typename T>
@@ -222,7 +209,6 @@ namespace vstl
 
     template <bool B, typename T, typename F>
     using conditional_t = typename conditional<B, T, F>::type;
-
 
     //is_array
     template <typename T>
@@ -475,7 +461,19 @@ namespace vstl
     template <typename T>
     using add_pointer_t = typename vstl::add_pointer<T>::type;
 
-    #endif
+    //add lvalue reference 
+    template <typename T>
+    struct add_lvalue_reference : decltype(detail::try_add_lvalue_reference<T>(0)) {};
+
+    template <typename T>
+    using add_lvalue_reference_t = typename vstl::add_lvalue_reference<T>::type;
+
+    //add rvalue reference 
+    template <typename T>
+    struct add_rvalue_reference : decltype(detail::try_add_rvalue_reference<T>(0)) {};
+
+    template <typename T>
+    using add_rvalue_reference_t = typename vstl::add_rvalue_reference<T>::type;
 
     //is fundamental
     template <typename T>
@@ -510,18 +508,22 @@ namespace vstl
     template <typename T>
     using is_object_t = typename vstl::is_object<T>::value;
     
-    //add lvalue reference 
     template <typename T>
-    struct add_lvalue_reference : decltype(detail::try_add_lvalue_reference<T>(0)) {};
-
+    struct decay 
+    {
+        private:
+            typedef typename std::remove_reference<T>::type U;
+        public:
+            typedef typename std::conditional< 
+                std::is_array<U>::value,
+                typename std::remove_extent<U>::type*,
+                typename std::conditional< 
+                    std::is_function<U>::value,
+                    typename std::add_pointer<U>::type,
+                    typename std::remove_cv<U>::type>::type>::type type;
+    };
+    
     template <typename T>
-    using add_lvalue_reference_t = typename vstl::add_lvalue_reference<T>::type;
-
-    //add rvalue reference 
-    template <typename T>
-    struct add_rvalue_reference : decltype(detail::try_add_rvalue_reference<T>(0)) {};
-
-    template <typename T>
-    using add_rvalue_reference_t = typename vstl::add_rvalue_reference<T>::type;
+    using decay_t = typename vstl::decay<T>::type;
 }
 #endif
