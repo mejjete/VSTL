@@ -433,7 +433,7 @@ namespace vstl
 
     #endif
 
-    //is is_fundamental
+    //is fundamental
     template <typename T>
     struct is_fundamental : public vstl::integral_constant<bool, 
         is_arithmetic<T>::value ||
@@ -442,5 +442,22 @@ namespace vstl
 
     template <typename T>
     using is_fundamental_t = typename vstl::is_fundamental<T>::type;
+
+    //is scalars
+    template <typename T>
+    struct is_scalar : public vstl::integral_constant<bool, 
+        vstl::is_arithmetic<T>::value ||
+        vstl::is_enum<T>::value ||
+        vstl::is_pointer<T>::value ||
+        vstl::is_member_pointer<T>::value ||
+        vstl::is_null_pointer<T>::value> {};
+
+    //is object 
+    template <typename T>
+    struct is_object : public vstl::integral_constant<bool, 
+        vstl::is_scalar<T>::value ||
+        vstl::is_array<T>::value ||
+        vstl::is_union<T>::value ||
+        vstl::is_class<T>::value> {};
 }
 #endif
