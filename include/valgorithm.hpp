@@ -5,8 +5,9 @@ namespace vstl
 {
     namespace alg
     {
+
         template <typename ForwardIterator>
-        ForwardIterator min_elem(ForwardIterator first, ForwardIterator last)
+        ForwardIterator min_element(ForwardIterator first, ForwardIterator last)
         {
             ForwardIterator minIt = first;
             for(auto i = ++first; i != last; i++)
@@ -20,17 +21,29 @@ namespace vstl
         {
             ForwardIterator minIt = first;
             for(auto i = ++first; i != last; i++)
-                if(compare(*i, *minIt))
+                if(comp(*i, *minIt))
                     minIt = i;
             return minIt;
         };
 
-        template <typename ForwardIterator, typename Compare>
+        template <typename T>
+        const T& min(const T& a, const T& b) { return a < b ? a : b; };
+
+        template <typename T, typename Compare>
+        const T& min(const T& a, const T& b, Compare comp) { return comp(a, b) ? a : b; };
+
+        template <typename T>
+        T min(std::initializer_list<T> ilist) { return *min_element(ilist.begin(), ilist.end()); };
+
+        template <typename T, typename Compare>
+        T min(std::initializer_list<T> ilist, Compare comp) { return *min_element(ilist.begin(), ilist.end(), comp); }; 
+
+        template <typename ForwardIterator>
         ForwardIterator max_element(ForwardIterator first, ForwardIterator last)
         {
             ForwardIterator maxIt = first;
             for(auto i = ++first; i != last; i++)
-                if(*maxIt > *i)
+                if(*i > *maxIt)
                     maxIt = i;
             return maxIt;
         }
@@ -40,10 +53,23 @@ namespace vstl
         {
             ForwardIterator maxIt = first;
             for(auto i = ++first; i != last; i++)
-                if(compare(*maxIt, *i))
+                if(comp(*i, *maxIt))
                     maxIt = i;
             return maxIt;
         };
+
+        template <typename T>
+        const T& max(const T& a, const T& b) { return a > b ? a : b; };
+
+        template <typename T, typename Compare>
+        const T& max(const T& a, const T& b, Compare comp) { return comp(a, b) ? a : b; };
+
+        template <typename T>
+        T max(std::initializer_list<T> ilist) { return *max_element(ilist.begin(), ilist.end()); };
+
+        template <typename T, typename Compare>
+        T max(std::initializer_list<T> ilist, Compare comp) { return *max_element(ilist.begin(), ilist.end(), comp); }; 
+
 
         template <typename InputIter, typename Predicate>
         inline bool all_of(InputIter first, InputIter last, Predicate pred)
