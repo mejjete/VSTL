@@ -292,6 +292,9 @@ namespace vstl
     struct is_arithmetic : vstl::integral_constant<bool, 
         vstl::is_integral<T>::value || vstl::is_floating_point<T>::value> {};
 
+    template <typename T>
+    using is_arithmetic_v = typename vstl::is_arithmetic<T>::value;
+
     //is lvalue reference
     template <typename T>
     struct is_lvalue_reference : public vstl::false_type {};
@@ -452,6 +455,9 @@ namespace vstl
         vstl::is_member_pointer<T>::value ||
         vstl::is_null_pointer<T>::value> {};
 
+    template <typename T>
+    using is_scalar_v = typename vstl::is_scalar<T>::type;
+
     //is object 
     template <typename T>
     struct is_object : public vstl::integral_constant<bool, 
@@ -459,5 +465,9 @@ namespace vstl
         vstl::is_array<T>::value ||
         vstl::is_union<T>::value ||
         vstl::is_class<T>::value> {};
+
+    template <typename T>
+    using is_object_t = typename vstl::is_object<T>::value;
+    
 }
 #endif
