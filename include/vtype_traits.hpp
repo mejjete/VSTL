@@ -432,5 +432,15 @@ namespace vstl
         !vstl::is_function<T>::value> {};
 
     #endif
+
+    //is is_fundamental
+    template <typename T>
+    struct is_fundamental : public vstl::integral_constant<bool, 
+        is_arithmetic<T>::value ||
+        is_void<T>::value ||
+        is_null_pointer<T>::value> {};
+
+    template <typename T>
+    using is_fundamental_t = typename vstl::is_fundamental<T>::type;
 }
 #endif
