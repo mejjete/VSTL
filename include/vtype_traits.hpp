@@ -37,7 +37,6 @@ namespace vstl
         typedef T type;
     };
     
-
     template <typename T>
     using remove_reference_t = typename vstl::remove_reference<T>::type;
 
@@ -70,6 +69,10 @@ namespace vstl
 
         template <typename T>
         auto try_add_pointer(...) -> type_identity<T>;
+
+        template <typename T> constexpr T& FUN(T& t) noexcept { return t; };
+
+        template <typename T> void FUN(T&&) = delete;
     }
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -419,6 +422,25 @@ namespace vstl
 
     template <typename T>
     using remove_extent_t = typename vstl::remove_extent<T>::type;
+
+    //remove all extents
+    template <typename T>
+    struct remove_all_extents
+    {
+        typedef T type;
+    };
+
+    template <typename T>
+    struct remove_all_extents<T[]>
+    {
+        typedef typename vstl::remove_all_extents<T>::type;
+    };
+
+    template <typename T, size_t N>
+    struct remove_all_extents<T[N]>
+    {
+        typedef typename vstl::remove_all_extents<T>::type;
+    };
 
     //remove pointer
     template <typename T>
