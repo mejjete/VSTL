@@ -3,6 +3,7 @@
 #include "vbinder.hpp"
 #include "vpredicate.hpp"
 #include "vinterface.hpp"
+#include "vtype_traits.hpp"
 #include <memory>
 #include <cstdlib>
 #include <cassert>
@@ -86,6 +87,37 @@ namespace vstl
         public:
             explicit pointer_to_binary_function(Result(*f)(Arg1, Arg2)) : funct(f) {}; 
             Result operator()(Arg1 a1, Arg2 a2) const { return funct(a1, a2); };
+    };
+
+    //reference wrapper
+    template <typename T>
+    class reference_wrapper
+    {
+        public:
+            typedef T type;
+
+            template <typename U, typename = decltype(
+                detail::FUN<T>(vstl::declval<U>()), 
+                vstl::enable_if_t<!vstl::is_same_v<reference_wrapper, vstl::remove_cvref_t<T>>>()
+            )> constexpr reference_wrapper(U&& u) noexcept(noexcept(detail::FUN<T>(std::forward<U>(u))))
+                : _ptr(std::addressof(detail::FUN<T>(std::forward<U>(u)))) {}
+            reference_wrapper(const reference_wrapper&) noexcept = default;
+
+            // assignment
+            reference_wrapper& operator=(const reference_wrapper& x) noexcept = default;
+            
+            // access
+            constexpr operator T& () const noexcept { return *_ptr; }
+            constexpr T& get() const noexcept { return *_ptr; }
+            
+            template< class... ArgTypes >
+            constexpr std::invoke_result_t<T&, ArgTypes...>
+            operator() ( ArgTypes&&... args ) const 
+            {
+                return std::invoke(get(), std::forward<ArgTypes>(args)...);
+            };
+        private:
+            T* _ptr;
     };
 }
 #endif
