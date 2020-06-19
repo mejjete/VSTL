@@ -136,6 +136,16 @@ namespace vstl
     template <typename T>
     using remove_volatile_t = typename remove_volatile<T>::type;
 
+    //remove const volatile reference
+    template <typename T>
+    struct remove_cvref
+    {
+        typedef vstl::remove_cv_t<vstl::remove_reference_t<T>> type;
+    };
+
+    template <typename T>
+    using remove_cvref_t = typename vstl::remove_cv<T>::type;
+
 
     //is-same
     template <typename T, typename U>
@@ -433,14 +443,17 @@ namespace vstl
     template <typename T>
     struct remove_all_extents<T[]>
     {
-        typedef typename vstl::remove_all_extents<T>::type;
+        typedef typename vstl::remove_all_extents<T>::type type;
     };
 
     template <typename T, size_t N>
     struct remove_all_extents<T[N]>
     {
-        typedef typename vstl::remove_all_extents<T>::type;
+        typedef typename vstl::remove_all_extents<T>::type tye;
     };
+
+    template <typename T>
+    using remove_all_extents_t = typename vstl::remove_all_extents<T>;
 
     //remove pointer
     template <typename T>
