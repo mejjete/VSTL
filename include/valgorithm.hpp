@@ -232,11 +232,19 @@ namespace vstl
         OutputIterator transform(InputIterator first, InputIterator last, OutputIterator result, BinaryOperation op);
 
         template <typename InputIter, typename Function>
-        Function for_each(InputIter first, InputIter last, Function func)
+        Function for_each_n(InputIter first, InputIter last, Function func)
         {
             for(auto i = first; i != last; i++)
                 func(*i);
             return func;
+        };
+
+        template <typename InputIter, class Size, class UnaryOperation>
+        InputIter for_each_n(InputIter first, Size size, UnaryOperation f)
+        {
+            for(Size i = 0; i < size; i++, ++first)
+                f(*first);
+            return first;
         };
     };
 }

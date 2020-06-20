@@ -4,6 +4,8 @@
 #include "vpredicate.hpp"
 #include "vinterface.hpp"
 #include "vtype_traits.hpp"
+#include "vutility.hpp"
+#include <type_traits>
 #include <memory>
 #include <cstdlib>
 #include <cassert>

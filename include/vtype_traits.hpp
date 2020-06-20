@@ -154,6 +154,9 @@ namespace vstl
     template <typename T>
     struct is_same<T, T> : public vstl::true_type {};
 
+    template <typename T, typename U>
+    using is_same_v = typename vstl::is_same<T, U>::value;
+
 
     //is const value
     template <typename T>
