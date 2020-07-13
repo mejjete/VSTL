@@ -43,7 +43,10 @@ namespace vstl
             self_type& begin()   { iter = container.begin(); return *this; };
             self_type& end()     { iter = container.end(); return *this; };
             self_type& operator++() { iter = container.next(iter); return *this; };
-            self_type& operator++(int) { return operator++(); };    
+            self_type& operator++(int) { return operator++(); };
+
+            decltype(container_type().operator[](0)) operator[](int n) { return container.operator[](n); };
+
             value_type& operator*() { return *iter; };
             bool operator==(self_type& i) { return this->iter == i.iter; };
             bool operator!=(self_type& i) { return this->iter != i.iter; };

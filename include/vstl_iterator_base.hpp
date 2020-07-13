@@ -1,5 +1,6 @@
 #ifndef VSTL_ITERATOR_BASE
     #define VSTL_ITERATOR_BASE
+#include "vtype_traits.hpp"
 namespace vstl
 {
     struct input_iterator_tag {};
@@ -32,5 +33,26 @@ namespace vstl
         typedef T*                                  pointer;
         typedef T&                                  reference;
     };
+
+    
+    template <typename T>
+    struct is_input_iterator : public vstl::integral_constant<bool, vstl::is_same<
+        typename vstl::iterator_traits<T>::iterator_category, input_iterator_tag>::value> {};
+
+    template <typename T>
+    struct is_output_iterator : public vstl::integral_constant<bool, vstl::is_same<
+        typename vstl::iterator_traits<T>::iterator_category, output_iterator_tag>::value> {}; 
+
+    template <typename T>
+    struct is_forward_iterator : public vstl::integral_constant<bool, vstl::is_same<
+        typename vstl::iterator_traits<T>::iterator_category, forward_iterator_tag>::value> {};
+
+    template <typename T>
+    struct is_bidirectional_iterator : public vstl::integral_constant<bool, vstl::is_same<
+        typename vstl::iterator_traits<T>::iterator_category, bidirectional_iterator_tag>::value> {};
+
+    template <typename T>
+    struct is_random_access_iterator : public vstl::integral_constant<bool, vstl::is_same<
+        typename vstl::iterator_traits<T>::iterator_category, vstl::random_access_iterator_tag>::value> {};
 }
 #endif
