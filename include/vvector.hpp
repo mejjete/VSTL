@@ -7,6 +7,7 @@
 #include <climits>
 #include "viterator.hpp"
 #include "valgorithm.hpp"
+#include "vutility.hpp"
 namespace vstl
 {
     template <typename T>
@@ -260,7 +261,7 @@ namespace vstl
     {
         if(n >= m_used_size)
             return m_data[0];
-        return m_data[n - 1];
+        return m_data[n + 1];
     }
 
     template <typename T>
