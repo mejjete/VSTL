@@ -1,15 +1,19 @@
 #ifndef VSTL_UTILITY
     #define VSTL_UTILITY
-#include "type_traits"
+#include "vtype_traits.hpp"
+// #include <memory>
 
 namespace vstl
 {
+    //declval
+    template <typename T>
+    typename vstl::add_rvalue_reference<T>::type declval() noexcept;
 
     //move
     template <typename T>
-    typename vstl::remove_reference<T>::type&& move(T&& arg) noexcept
+    constexpr typename vstl::remove_reference<T>::type&& move(T&& arg) noexcept
     {
-        return static_cast<typename vstl::remove_reference<T>::type &&>(arg);
+        return static_cast<typename vstl::remove_reference<decltype(arg)>::type&&>(arg);
     };
 
     //forward
@@ -25,10 +29,6 @@ namespace vstl
         static_assert(!vstl::is_lvalue_reference<T>::value, "invalud rvalue to lvalue conversion");
         return static_cast<T&&>(arg);
     };
-
-    //declval
-    template <typename T>
-    typename vstl::add_rvalue_reference<T>::type declval() noexcept;
 
     //tuple
     template <typename... Ts>

@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cuchar>
+// #include "vutility.hpp"
 namespace vstl
 {
 
@@ -39,42 +40,6 @@ namespace vstl
     
     template <typename T>
     using remove_reference_t = typename vstl::remove_reference<T>::type;
-
-    ///////////////////////////////////////////////////////////////////////////////
-    namespace detail
-    {
-        template <typename T>
-        char test(int T::*);
-        struct two { char c[2]; };
-        template <typename T>
-        two test(...);
-
-        template <typename T>
-        struct type_identity { using type = T; };
-
-        template <typename T>
-        auto try_add_lvalue_reference(int) -> type_identity<T&>;
-
-        template <typename T>
-        auto try_add_lvalue_reference(...) -> type_identity<T>;
-
-        template <typename T>
-        auto try_add_rvalue_reference(int) -> type_identity<T&&>;
-
-        template <typename T>
-        auto try_add_rvalue_reference(...) -> type_identity<T>;
-
-        template <typename T>
-        auto try_add_pointer(int) -> type_identity<typename vstl::remove_reference_t<T>*>;
-
-        template <typename T>
-        auto try_add_pointer(...) -> type_identity<T>;
-
-        template <typename T> constexpr T& FUN(T& t) noexcept { return t; };
-
-        template <typename T> void FUN(T&&) = delete;
-    }
-    ///////////////////////////////////////////////////////////////////////////////
 
     //remove_cv
     template <typename T>
@@ -146,6 +111,47 @@ namespace vstl
     template <typename T>
     using remove_cvref_t = typename vstl::remove_cv<T>::type;
 
+    namespace detail
+    {
+        template <typename T>
+        char test(int T::*);
+        struct two { char c[2]; };
+        template <typename T>
+        two test(...);
+
+        template <typename T>
+        struct type_identity { using type = T; };
+
+        template <typename T>
+        auto try_add_lvalue_reference(int) -> type_identity<T&>;
+
+        template <typename T>
+        auto try_add_lvalue_reference(...) -> type_identity<T>;
+
+        template <typename T>
+        auto try_add_rvalue_reference(int) -> type_identity<T&&>;
+
+        template <typename T>
+        auto try_add_rvalue_reference(...) -> type_identity<T>;
+
+        template <typename T>
+        auto try_add_pointer(int) -> type_identity<typename vstl::remove_reference_t<T>*>;
+
+        template <typename T>
+        auto try_add_pointer(...) -> type_identity<T>;
+
+        template <typename T> constexpr T& FUN(T& t) noexcept { return t; };
+
+        template <typename T> void FUN(T&&) = delete;
+
+        template <typename Base>
+        vstl::true_type is_base_of_test_func(const volatile Base*);
+        template <typename Base>
+        vstl::false_type is_base_of_test_func(const volatile void *);
+
+        template <typename Base, typename Derived>
+        using pre_is_base_of = decltype(is_base_of_test_func<Base>(std::declval<Derived*>()));
+    }
 
     //is-same
     template <typename T, typename U>
@@ -400,6 +406,19 @@ namespace vstl
     template <typename T>
     struct is_class : public vstl::integral_constant<bool, sizeof(vstl::detail::test<T>(0)) == 1 && !vstl::is_union<T>::value> {};
 
+    // same implementation
+    // template <typename T>
+    // class is_class 
+    // {
+    //     private: 
+    //         template <typename Q>
+    //         static int _m(int C::* member) { return 0; };
+    //         template <typename ...>
+    //         static char _m(...) { return 0; };
+    //     public:
+    //         static const bool value = sizeof(_m<T>(0) == sizeof(int);
+    // };
+
     //is_enum
     template <typename T>
     struct is_enum : public vstl::integral_constant<bool, 
@@ -563,5 +582,13 @@ namespace vstl
     
     template <typename T>
     using decay_t = typename vstl::decay<T>::type;
+
+    template <typename Base, typename Derived>
+    struct is_base_of : public vstl::conditional_t<
+        vstl::is_class<Base>::value && vstl::is_class<Derived>::value, 
+        vstl::detail::pre_is_base_of<Base, Derived>, vstl::false_type> {};
+
+    template <typename Base, typename Derived>
+    using is_base_of_v = typename vstl::is_base_of<Base, Derived>::value;
 }
 #endif
