@@ -54,6 +54,54 @@ namespace vstl
             container_type& container;
             iterator_type iter;
     };
+
+    template <typename Container>
+    auto begin(Container& c) -> decltype(c.begin())
+    {
+        return c.begin();
+    };
+
+    template <typename Container>
+    auto end(Container& c) -> decltype (c.end())
+    {
+        return c.end();
+    };
+
+    template <typename Container>
+    auto cbegin(const Container& c) -> decltype(c.cbegin())
+    {
+        return c.cbegin();
+    }
+
+    template <typename Container>
+    auto cend(const Container& c) -> decltype(c.cend());
+    {
+        return c.cend();
+    };
+
+    template <typename Container>
+    auto rbegin(Container& c) -> decltype(c.rbegin())
+    {
+        return c.rbegin();
+    };
+
+    template <typename Container>
+    auto rend(Container& c) -> decltype(c.rend())
+    {
+        return c.rend();
+    };
+
+    template <typename Container>
+    auto crbegin(const Container& c) -> decltype(c.crbegin())
+    {
+        return c.crbegin();
+    };
+
+    template <typename Container>
+    auto crend(const Container& c) -> decltype(c.crend())
+    {
+        return c.crend();
+    };
 }
 
 
