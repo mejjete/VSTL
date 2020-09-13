@@ -74,7 +74,7 @@ namespace vstl
     }
 
     template <typename Container>
-    auto cend(const Container& c) -> decltype(c.cend());
+    auto cend(const Container& c) -> decltype(c.cend())
     {
         return c.cend();
     };
