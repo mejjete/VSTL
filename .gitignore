@@ -1,8 +1,11 @@
 main.cpp
 debug.cpp
+start.cpp
 *.exe
 *.txt
 .vscode/
+*.o
+makefile
 # vutility.hpp
 
 # Swap
