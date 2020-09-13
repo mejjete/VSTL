@@ -8,6 +8,9 @@
 #include "viterator.hpp"
 #include "valgorithm.hpp"
 #include "vutility.hpp"
+#define VFS_DIRCOLOR        "\x1b[1;36m"
+#define ANSI_COLOR_RESET    "\x1b[0m"
+
 namespace vstl
 {
     template <typename T>
@@ -31,7 +34,7 @@ namespace vstl
                     typedef int                                         difference_type;
                     typedef vstl::random_access_iterator_tag            iterator_category;
                     iterator() : m_vector(nullptr), m_index(0) {};
-                    iterator(vstl::vector<T>* vect, int i = 2) : m_vector(vect), m_index(i) {};
+                    iterator(vstl::vector<T>* vect, int i = 0) : m_vector(vect), m_index(i) {};
                     iterator(const self_type& iter) : m_vector(iter.m_vector), m_index(iter.m_index) {};
                     self_type& operator=(const vstl::vector<T>* vect) { m_vector = vect; m_index = vect.m_index; return *this; }; 
                     self_type& operator=(const vstl::vector<T>::iterator& iter) { m_vector = iter.m_vector; m_index = iter.m_index; return *this; };
@@ -63,7 +66,7 @@ namespace vstl
                     typedef int                                         difference_type;
                     typedef vstl::random_access_iterator_tag            iterator_category;
                     const_iterator() : m_vector(nullptr), m_index(0) {};
-                    const_iterator(vstl::vector<T>* vect, int i = 2) : m_vector(vect), m_index(i) {};
+                    const_iterator(vstl::vector<T> *vect, int i = 0) : m_vector(vect), m_index(i) {};
                     const_iterator(const self_type& iter) : m_vector(iter.m_vector), m_index(iter.m_index) {};
                     self_type& operator=(const vstl::vector<T>* vect) { m_vector = vect; m_index = vect.m_index; return *this; };  
                     self_type operator++()          { return self_type(m_vector, ++m_index); };
@@ -85,6 +88,7 @@ namespace vstl
             typedef vstl::reverse_iterator<const T>        const_reverse_iterator;
 
             vector();
+            vector(int a, int b);
             vector(const vector<T>& vect);
             vector(vector<T>&& vect);
             vector(const std::initializer_list<T>& list);
@@ -92,13 +96,15 @@ namespace vstl
             vector(Iter first, Iter last);
             ~vector() { delete[] m_data; };
 
-            iterator begin() { return iterator(this); };
-            iterator end()   { return iterator(this, m_used_size); };
-            const_iterator cbegin() const { return const_iterator(this); };
-            const_iterator cend()   const { return const_iterator(this, m_used_size); };
-            reverse_iterator rbegin() { return reverse_iterator(&m_data[m_used_size - 2]); };
+            iterator begin() { return iterator(this, 0); };
+            iterator end()   { return iterator(this, m_used_size - 2); };
+            const_iterator cbegin() { return const_iterator(this, 0); };
+            const_iterator cend()   { return const_iterator(this, m_used_size - 2); };
+            const_iterator cbegin() const { return const_iterator(this, 0); };
+            const_iterator cend()   const { return const_iterator(this, m_used_size - 2); };
+            reverse_iterator rbegin() { return reverse_iterator(&m_data[m_used_size - 1]); };
             reverse_iterator rend()   { return reverse_iterator(&m_data[0]); };
-            const_reverse_iterator crbegin() const { return const_reverse_iterator(&m_data[m_used_size - 2]); };
+            const_reverse_iterator crbegin() const { return const_reverse_iterator(&m_data[m_used_size - 1]); };
             const_reverse_iterator crend()   const { return const_reverse_iterator(&m_data[0]); };
 
             T& operator[](int i);
@@ -177,12 +183,24 @@ namespace vstl
 
             template <typename U>
             friend vector<T> operator+(const vector<T>& v1, const vector<T>& v2) {};
+
+            void traverse();
     };
 
     template <typename T>
     vector<T>::vector() : m_size(15), m_used_size(2)
     {
         m_data = new T[m_size];
+    }
+
+    template <typename T>
+    vector<T>::vector(int a, int b) : m_used_size(2)
+    {
+        m_size = (a + m_used_size) <= 15 ? 15 : a;
+        m_data = new T[m_size];
+        m_used_size += a;
+        for(int i = 0; i < a; i++)
+            m_data[i + 1] = b;
     }
 
     template <typename T>
