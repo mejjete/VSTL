@@ -60,6 +60,12 @@ namespace vstl
     using is_constructible_v = typename vstl::is_constructible<T>::value;
 
     template <typename T>
+    struct is_default_constructible : public vstl::is_constructible<T> {};
+
+    template <typename T>
+    using is_default_constructible_v = typename vstl::is_default_constructible<T>::value;
+
+    template <typename T>
     struct is_move_constructible : public vstl::is_constructible<T, typename vstl::add_rvalue_reference<T>::type> {};
 
     template <typename T>
