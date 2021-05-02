@@ -6,6 +6,7 @@ start.cpp
 .vscode/
 *.o
 makefile
+*.bat
 # vutility.hpp
 
 # Swap

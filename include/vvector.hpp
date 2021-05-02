@@ -1,21 +1,50 @@
 #ifndef VSTL_VECTOR
     #define VSTL_VECTOR
-#include <iostream>
+
 #include <cstring>
 #include <stdexcept>
 #include <initializer_list>
 #include <climits>
-#include "viterator.hpp"
-#include "valgorithm.hpp"
-#include "vutility.hpp"
-#define VFS_DIRCOLOR        "\x1b[1;36m"
-#define ANSI_COLOR_RESET    "\x1b[0m"
+#include <viterator.hpp>
+#include <valgorithm.hpp>
+#include <vutility.hpp>
+
+template <typename T, typename C>
+class __basic_iterator
+{
+    public:
+        typedef __basic_iterator<T, C>  self_type;
+        typedef T                       value_type;
+        typedef T&                      reference;
+        typedef T*                      pointer; 
+        typedef const T*                const_pointer;
+        typedef const T&                const_reference;
+        typedef int                     difference_type;
+        typedef C                       container_type;
+
+        __basic_iterator() : m_cont(nullptr), m_index(nullptr) {};
+        decltype(auto) begin() = delete; 
+        decltype(auto) end() = delete;
+        decltype(auto) cbegin() = delete;
+        decltype(auto) cend() = delete;
+
+    private:
+        container_type *m_cont; 
+        void *m_index;
+};
 
 namespace vstl
 {
     template <typename T>
     class vector
     {
+        /* Assertions */
+
+        static_assert(vstl::is_same<vstl::remove_cv_t<T>, T>::value, 
+                "vstl::vector must have a non-const, non-volatile type");
+        static_assert(vstl::is_move_constructible<T>::value,
+                "vstl::vector must have a move constructible type");
+        
         private:
             T* m_data;
             size_t m_size;
@@ -75,8 +104,8 @@ namespace vstl
                     self_type operator--(int)       { return operator--(); };
                     const_reference operator*()     { return m_vector->operator[](m_index); };
                     const value_type operator->()   { return m_vector->operator[](m_index); };
-                    bool operator==(const self_type& rhs) { return m_index == rhs.m_index; };
-                    bool operator!=(const self_type& rhs) { return m_index != rhs.m_index; };
+                    bool operator==(const self_type& rhs) { return ((m_vector == &rhs) && m_index == rhs.m_index); };
+                    bool operator!=(const self_type& rhs) { return !operator==(rhs); };
                     friend self_type& operator+(self_type &lhs, int i) { lhs.m_index += i; return lhs; };
                     friend self_type& operator-(self_type &lhs, int i) { lhs.m_index -= i; return lhs; };
                 private:
@@ -84,17 +113,17 @@ namespace vstl
                     int m_index;
             };
 
-            typedef vstl::reverse_iterator<T>              reverse_iterator;
-            typedef vstl::reverse_iterator<const T>        const_reverse_iterator;
+            typedef vstl::reverse_iterator<T>               reverse_iterator;
+            typedef vstl::reverse_iterator<const T>         const_reverse_iterator;
 
             vector();
-            vector(int a, int b);
+            vector(int a, T&& val);
             vector(const vector<T>& vect);
             vector(vector<T>&& vect);
             vector(const std::initializer_list<T>& list);
             template <typename Iter>
             vector(Iter first, Iter last);
-            ~vector() { delete[] m_data; };
+            ~vector() { ::operator delete[] (m_data); };
 
             iterator begin() { return iterator(this, 0); };
             iterator end()   { return iterator(this, m_used_size - 2); };
@@ -145,9 +174,9 @@ namespace vstl
             T& at(int pos);
             const T& at(int pos) const;
 
-            void push_back(const T& item);
-            void push_back(T&& item) { return push_back(static_cast<const T&>(item)); };
-            T pop_back();
+            // void push_back(const T& item);
+            void push_back(T&& item); /*{ return push_back(static_cast<const T&>(item)); };*/
+            void pop_back();
 
             template <typename ...Argc>
             iterator emplace(const_iterator position, Argc&& ...argc);
@@ -176,33 +205,27 @@ namespace vstl
             bool validate() const noexcept;
             int validate_iterator(const_iterator iter) const noexcept;
 
-            //__base_iterator features
-
-            iterator next(iterator iter = begin())  { return ++iter; };
-            iterator prev(iterator iter = end())    { return --iter; };
-
             template <typename U>
             friend vector<T> operator+(const vector<T>& v1, const vector<T>& v2) {};
-
-            void traverse();
     };
 
     template <typename T>
     vector<T>::vector() : m_size(15), m_used_size(2)
     {
-        m_data = new T[m_size];
+        m_data = static_cast<T*>(::operator new(sizeof(T) * m_size));
     }
 
     template <typename T>
-    vector<T>::vector(int a, int b) : m_used_size(2)
+    vector<T>::vector(int a, T&& val) : m_used_size(2)
     {
         m_size = (a + m_used_size) <= 15 ? 15 : a;
-        m_data = new T[m_size];
+        m_data = static_cast<T*>(::operator new(sizeof(T) * m_size));
         m_used_size += a;
         for(int i = 0; i < a; i++)
-            m_data[i + 1] = b;
+            new (m_data + i + 1) T(vstl::forward<T>(val));
     }
 
+    //placeholder for copy constructor
     template <typename T>
     vector<T>::vector(const vector<T>& vect)
     {
@@ -218,7 +241,7 @@ namespace vstl
         this->m_used_size = vect.m_used_size;
         this->m_size = vect.m_size;
 
-        vect.m_data = new T[15];
+        vect.m_data = static_cast<T*>(::operator new(sizeof(T) * 15));
         vect.m_size = 15;
         vect.m_used_size = 2; 
     }
@@ -226,45 +249,46 @@ namespace vstl
     template <typename T>
     vector<T>::vector(const std::initializer_list<T>& l) : m_size(l.size()), m_used_size(2)
     {
-        m_data = new T[this->m_size];
+        m_data = static_cast<T*>(::operator new(sizeof(T) * m_size));
         for(auto i = l.begin(); i != l.end(); i++)
             this->push_back(*i);
     }
 
     template <typename T>
     template <typename Iter>
-    vector<T>::vector(Iter first, Iter last) : m_size(15), m_used_size(2)
+    vector<T>::vector(Iter first, Iter last) : m_size(last - first), m_used_size(2)
     {
-        reallocate_space(15);
+        reallocate_space(m_size);
         for(auto i = first; i != last; i++)
             this->push_back(*i);
     }
 
     template <typename T>
-    void vector<T>::push_back(const T& item)
+    void vector<T>::push_back(T&& item)
     {
-        if((m_used_size + 1) > m_size)
-            reallocate_space(m_size + 15);
-        m_data[m_used_size - 1] = item;
-        m_used_size++;
+        if((m_used_size + 1) < m_size)
+        {
+            new (m_data + m_used_size - 1) T(vstl::forward<T>(item));
+            m_used_size++;
+            return;
+        } 
+        reallocate_space(m_size * 2);
     };
 
     template <typename T>
-    T vector<T>::pop_back()
+    void vector<T>::pop_back()
     {
         if(m_used_size > 2)
-            return m_data[--m_used_size];
-        else 
-            return T(0);
+            m_used_size--;
     };
 
     template <typename T>
     void vector<T>::reallocate_space(int sSize)
     {
-        T* ptr = new T[sSize];
-        m_size = sSize;
+        T *ptr = static_cast<T*>(::operator new(sizeof(T) * sSize));
         std::memcpy(ptr, m_data, sizeof(T) * m_size);
-        delete[] m_data;
+        m_size = sSize;
+        ::operator delete[] (m_data);
         m_data = ptr;
     }
 
