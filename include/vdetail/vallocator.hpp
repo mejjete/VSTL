@@ -22,7 +22,7 @@ namespace vstl
             using reference = T&;
             using const_reference = const T&;
             using size_type = std::size_t;
-            using different_type = std::ptrdiff_t;
+            using difference_type = std::ptrdiff_t;
             using propagate_on_container_move_assignment = vstl::true_type;
             using is_always_equal = vstl::true_type;
 
