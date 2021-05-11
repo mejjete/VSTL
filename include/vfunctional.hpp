@@ -36,7 +36,7 @@ namespace vstl
             template <typename T>
             function& operator=(T t)
             {
-                callable_ = std::make_unique<CallableT<T>>(t);
+                callable_ = std::unique_ptr<CallableT<T>>(t);
                 return *this;
             };
             ReturnValue operator()(Args... argc) const 
