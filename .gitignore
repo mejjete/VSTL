@@ -3,6 +3,9 @@ debug.cpp
 *.exe
 *.txt
 .vscode/
+*.sh
+*.out
+output 
 # vutility.hpp
 
 # Swap
