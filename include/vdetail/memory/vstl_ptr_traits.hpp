@@ -1,56 +1,101 @@
 #ifndef VSTL_PTR_TRAITS
     #define VSTL_PTR_TRAITS
 
+#include <vtype_traits.hpp>
+#include <vdetail/type_traits/libc_traits.hpp>
+
 namespace vstl
 {
-    /* 
-     * pointer_trairs is an adapter template class
-     * for certain attributes for pointer and 
-     * pointer like classes
-     * 
-     *      STD implementation
+    /*
+     *  The reason why pointer traits is not a struct 
+     *  is the inability to chech whether the Ptr have 
+     *  predefined typedef's. It makes pointer_traits much more 
+     *  stable and useful. If the typedef's does not exist, then 
+     *  all non-existent typedef's inside the pointer_traits will be 
+     *  __undefined as well
     */
-
-    class __undefined;
-
-    template <typename T>
-    struct __get_first_arg
-    {
-        using type = __undefined;
-    };
-
-    template <typename T>
-    using __get_first_arg_t = typename __get_first_arg<T>::type;
-
-    template <typename Tp>
-    using __make_not_void = typename vstl::conditional<
-        vstl::is_void<Tp>::value, __undefined, Tp>::type;
-
     template <typename Ptr>
-    struct pointer_traits
+    class pointer_traits
     {
-        using pointer = Ptr;
-        using element_type = typename Ptr::element_type;
-        using difference_type = std::ptrdiff_t;
+        private:
+            template <typename T, typename = __void_t<>>
+            struct __ptr 
+            {
+                typedef __undefined type;
+            };
 
-        template <typename U>
-        using rebing = U*;
+            template <typename T>
+            struct __ptr<T, vstl::__void_t<typename T::pointer*>>
+            {
+                typedef typename T::pointer type;
+            };
 
-        static Ptr pointer_to(__make_not_void<element_type> &__arg)
-        { return Ptr::pointer_to(arg); };
+            template <typename T, typename = __void_t<>>
+            struct __eltype
+            {
+                typedef __undefined type;
+            };
+
+            template <typename T>
+            struct __eltype<T, vstl::__void_t<typename T::element_type*>>
+            {
+                typedef typename T::element_type type;
+            };
+
+            template <typename T, typename = __void_t<>>
+            struct __difftype
+            {
+                typedef std::ptrdiff_t type;
+            };
+
+            template <typename T>
+            struct __difftype<T, vstl::__void_t<typename T::difference_type*>>
+            {
+                typedef typename T::difference_type type;
+            };
+
+            template <typename T, typename = __void_t<>>
+            struct __rebind
+            {
+                typedef __undefined type;
+            };
+
+            template <typename T>
+            struct __rebind<T, __void_t<typename T::rebing>>
+            {
+                typedef typename T::rebind type;
+            };
+
+
+        public:
+            using pointer = typename __ptr<Ptr>::type;
+            using element_type = typename __eltype<Ptr>::type;
+            using difference_type = typename __difftype<Ptr>::type;
+
+            template <typename T>
+            using rebing = typename __rebind<T>::type;
+
+            static pointer pointer_to(element_type &r)
+            {
+                return static_cast<pointer>(r);
+            };
     };
 
     template <typename T>
     struct pointer_traits<T*>
     {
-        using pointer = T*;
-        using element_type = T;
-        using difference_type = std::ptrdiff_t;
+        public:
+            using pointer =         T*;
+            using element_type =    T;
+            using difference_type = std::ptrdiff_t; 
 
-        template <typename U>
-        using rebing = U*;
+            template <typename U>
+            using rebing = U*;
 
-        static pointer pointert_to()
+            static pointer pointer_to(element_type &r)
+            {
+                return static_cast<pointer>(r);
+            };
     };
 };
 

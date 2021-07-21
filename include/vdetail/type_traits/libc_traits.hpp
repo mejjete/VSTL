@@ -3,6 +3,9 @@
 
 namespace vstl
 {
+    /* used for undefined entities */
+    class __undefined;
+
     template <typename ...>
     using __void_t = void;
 
