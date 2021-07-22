@@ -1,37 +1,17 @@
 #ifndef VSTL_VECTOR
     #define VSTL_VECTOR
 
+
 #include <cstring>
 #include <stdexcept>
 #include <initializer_list>
 #include <climits>
-#include <viterator.hpp>
-#include <valgorithm.hpp>
-#include <vutility.hpp>
 
-template <typename T, typename C>
-class __basic_iterator
-{
-    public:
-        typedef __basic_iterator<T, C>  self_type;
-        typedef T                       value_type;
-        typedef T&                      reference;
-        typedef T*                      pointer; 
-        typedef const T*                const_pointer;
-        typedef const T&                const_reference;
-        typedef int                     difference_type;
-        typedef C                       container_type;
 
-        __basic_iterator() : m_cont(nullptr), m_index(nullptr) {};
-        decltype(auto) begin() = delete; 
-        decltype(auto) end() = delete;
-        decltype(auto) cbegin() = delete;
-        decltype(auto) cend() = delete;
+#include <vstl/iterator.hpp>
+#include <vstl/algorithm.hpp>
+#include <vstl/utility.hpp>
 
-    private:
-        container_type *m_cont; 
-        void *m_index;
-};
 
 namespace vstl
 {

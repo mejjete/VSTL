@@ -1,6 +1,10 @@
 #ifndef VSTL_ITERATOR_BASE
     #define VSTL_ITERATOR_BASE
-#include "vtype_traits.hpp"
+
+
+#include <vstl/type_traits.hpp>
+
+
 namespace vstl
 {
     struct input_iterator_tag {};

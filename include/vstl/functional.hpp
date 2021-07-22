@@ -1,14 +1,23 @@
 #ifndef VSTL_FUNCTIONALITY
     #define VSTL_FUNCTIONALITY
-#include "vbinder.hpp"
-#include "vpredicate.hpp"
-#include "vinterface.hpp"
-#include "vtype_traits.hpp"
-#include "vutility.hpp"
-#include <type_traits>
+
+
 #include <memory>
 #include <cstdlib>
 #include <cassert>
+
+
+#include <vstl/binder.hpp>
+#include <vstl/predicate.hpp>
+#include <vstl/interface.hpp>
+#include <vstl/type_traits.hpp>
+#include <vstl/utility.hpp>
+#include <vstl/type_traits.hpp>
+
+
+#include <type_traits>
+
+
 namespace vstl
 {
     //Binders

@@ -1,8 +1,13 @@
-#pragma once
+#ifndef VSTL_STACK
+    #define VSTL_STACK
+
+
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
 #include <initializer_list>
+
+
 namespace vstl
 {
     template <typename T>
@@ -78,3 +83,5 @@ namespace vstl
             return data[--pos];
     }
 }
+
+#endif

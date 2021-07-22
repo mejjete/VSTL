@@ -1,8 +1,8 @@
 #ifndef VSTL_CLASS_SUPPORT_OP
     #define VSTL_CLASS_SUPPORT_OP
 
-#include <vdetail/type_traits/primary_traits.hpp>
-#include <vutility.hpp>
+#include <vstl/vdetail/type_traits/primary_traits.hpp>
+#include <vstl/utility.hpp>
 
 namespace vstl
 {

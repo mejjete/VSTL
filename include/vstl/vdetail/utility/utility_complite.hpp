@@ -1,9 +1,9 @@
 #ifndef VSTL_UTILITY_CLASS
     #define VSTL_UTILITY_CLASS
 
-#include <vdetail/type_traits/class_support_operations.hpp>
-#include <vutility.hpp>
-#include <vtype_traits.hpp>
+#include <vstl/vdetail/type_traits/class_support_operations.hpp>
+#include <vstl/utility.hpp>
+#include <vstl/type_traits.hpp>
 
 namespace vstl
 {

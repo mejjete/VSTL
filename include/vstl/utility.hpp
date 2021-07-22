@@ -1,8 +1,10 @@
 #ifndef VSTL_UTILITY
     #define VSTL_UTILITY
-#include <vdetail/type_traits/complite_traits.hpp>
-#include <vtuple.hpp>
-// #include <vdetail/type_traits/class_support_operations.hpp>
+
+
+#include <vstl/vdetail/type_traits/complite_traits.hpp>
+#include <vstl/tuple.hpp>
+
 
 namespace vstl
 {

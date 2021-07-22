@@ -1,8 +1,10 @@
 #ifndef VSTL_PTR_TRAITS
     #define VSTL_PTR_TRAITS
 
-#include <vtype_traits.hpp>
-#include <vdetail/type_traits/libc_traits.hpp>
+
+#include <vstl/type_traits.hpp>
+#include <vstl/vdetail/type_traits/libc_traits.hpp>
+
 
 namespace vstl
 {

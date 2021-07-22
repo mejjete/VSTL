@@ -1,7 +1,7 @@
 #ifndef VSTL_COMPLITE_TRAITS
     #define VSTL_COMPLITE_TRAITS
 
-#include <vdetail/type_traits/primary_traits.hpp>
+#include <vstl/vdetail/type_traits/primary_traits.hpp>
 
 namespace vstl
 {

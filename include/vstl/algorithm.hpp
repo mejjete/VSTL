@@ -1,6 +1,8 @@
 #ifndef VSTL_ALGORITHM
     #define VSTL_ALGORITHM
-#include "viterator.hpp"
+
+#include <vstl/iterator.hpp>
+
 namespace vstl
 {
     namespace alg

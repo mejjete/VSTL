@@ -1,9 +1,14 @@
 #ifndef VSTL_ALLOCATOR
     #define VSTL_ALLOCATOR
+
+
 #include <cstddef>
 #include <limits>
-#include <vdetail/type_traits/primary_traits.hpp>
-#include <vutility.hpp>
+
+
+#include <vstl/vdetail/type_traits/primary_traits.hpp>
+#include <vstl/utility.hpp>
+
 
 namespace vstl
 {

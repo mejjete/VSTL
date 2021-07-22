@@ -1,8 +1,15 @@
 #ifndef VSTL_LIST
     #define VSTL_LIST
+
+
 #include <iostream>
+#include <climits>
 #include <initializer_list>
-#include "viterator.hpp"
+
+
+#include <vstl/iterator.hpp>
+
+
 namespace vstl
 {
     template <typename T>

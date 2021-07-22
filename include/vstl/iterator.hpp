@@ -1,6 +1,10 @@
 #ifndef VSTL_ITERATORS
     #define VSTL_ITERATORS
-#include "vstl_iterator_base.hpp"
+
+
+#include <vstl/vdetail/vstl_iterator_base.hpp>
+
+
 namespace vstl
 {   
     //iterator for sequence container
