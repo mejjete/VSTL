@@ -2,7 +2,7 @@
     #define VSTL_BINDER
 
 
-#include <vstl/interface.hpp>
+#include <vstl/vdetail/interface.hpp>
 
 
 namespace vstl

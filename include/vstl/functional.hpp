@@ -7,9 +7,9 @@
 #include <cassert>
 
 
-#include <vstl/binder.hpp>
-#include <vstl/predicate.hpp>
-#include <vstl/interface.hpp>
+#include <vstl/vdetail/binder.hpp>
+#include <vstl/vdetail/predicate.hpp>
+#include <vstl/vdetail/interface.hpp>
 #include <vstl/type_traits.hpp>
 #include <vstl/utility.hpp>
 #include <vstl/type_traits.hpp>
