@@ -19,18 +19,6 @@ namespace vstl
     {
         private:
             template <typename T, typename = __void_t<>>
-            struct __ptr 
-            {
-                typedef __undefined type;
-            };
-
-            template <typename T>
-            struct __ptr<T, vstl::__void_t<typename T::pointer*>>
-            {
-                typedef typename T::pointer type;
-            };
-
-            template <typename T, typename = __void_t<>>
             struct __eltype
             {
                 typedef __undefined type;
@@ -68,7 +56,7 @@ namespace vstl
 
 
         public:
-            using pointer = typename __ptr<Ptr>::type;
+            using pointer = Ptr;
             using element_type = typename __eltype<Ptr>::type;
             using difference_type = typename __difftype<Ptr>::type;
 
