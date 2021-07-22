@@ -63,7 +63,7 @@ namespace vstl
             using difference_type = typename __difftype<Ptr>::type;
 
             template <typename T>
-            using rebing = typename __rebind<T>::type;
+            using rebind = typename __rebind<T>::type;
 
             static pointer pointer_to(element_type &r)
             {
@@ -80,7 +80,7 @@ namespace vstl
             using difference_type = std::ptrdiff_t; 
 
             template <typename U>
-            using rebing = U*;
+            using rebind = U*;
 
             static pointer pointer_to(element_type &r)
             {
