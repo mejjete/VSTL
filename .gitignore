@@ -1,11 +1,18 @@
 main.cpp
 debug.cpp
+start.cpp
 *.exe
 *.txt
 .vscode/
+<<<<<<< HEAD
 *.sh
 *.out
 output 
+=======
+*.o
+makefile
+*.bat
+>>>>>>> algorithm
 # vutility.hpp
 
 # Swap

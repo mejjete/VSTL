@@ -1,6 +1,10 @@
 #ifndef VSTL_BINDER
     #define VSTL_BINDER
-#include "vinterface.hpp"
+
+
+#include <vstl/vdetail/interface.hpp>
+
+
 namespace vstl
 {
     //bound first funciton parameter

@@ -1,6 +1,10 @@
 #ifndef VSTL_PREDICATE
     #define VSTL_PREDICATE
-#include "vinterface.hpp"
+
+
+#include <vstl/iterator.hpp>
+
+
 namespace vstl
 {
 
