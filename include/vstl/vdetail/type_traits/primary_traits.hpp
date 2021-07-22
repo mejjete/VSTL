@@ -391,6 +391,27 @@ namespace vstl
 
     template <typename T>
     using is_object_t = typename vstl::is_object<T>::value;
+
+    template <typename T, bool = vstl::is_arithmetic<T>::value>
+    struct is_unsigned : public std::integral_constant<bool, T(0) < T(-1)> {};
+
+    template <typename T>
+    struct is_unsigned<T, false> : public std::false_type {};
+
+    template <typename T>
+    using is_unsigned_v = typename vstl::is_unsigned<T>::value;
+
+    template <typename T, bool = 
+        vstl::is_arithmetic<T>::value &&
+        !vstl::is_unsigned<T>::value>
+    struct is_signed : public vstl::true_type {};
+
+    template <typename T>
+    struct is_signed<T, false> : public vstl::false_type {};
+
+    template <typename T>
+    using is_singed_v = typename vstl::is_signed<T>::value;
+
 }
 
 #endif

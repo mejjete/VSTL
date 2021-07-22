@@ -9,5 +9,7 @@
 #include <vstl/vdetail/type_traits/primary_traits.hpp>
 #include <vstl/vdetail/type_traits/complite_traits.hpp>
 #include <vstl/vdetail/type_traits/class_support_operations.hpp>
+#include <vstl/vdetail/type_traits/vstl_make_unsigned.hpp>
+
 
 #endif
