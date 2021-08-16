@@ -59,7 +59,7 @@ namespace vstl
 
     /*
      *  For a given type T, make unsigned T
-     *  If VSTL_EXPERIMENTAL defined, make_unsigned 
+     *  If VSTL_EXPERIMENTAL defined, derived type  
      *  could be __undefined
     */
     
@@ -74,7 +74,6 @@ namespace vstl
             
             static_assert(!vstl::is_same<_t_no_cv, bool>::value,
                 "make_unsigned<T>: T must not be the bool type");
-
 
 
             typedef typename vstl::detail::__make_unsigned<_t_no_cv>::type   ttype;
@@ -132,6 +131,10 @@ namespace vstl
         public:
             typedef cv_itype type; 
     };
+
+    template <typename T>
+    using make_unsigned_t = typename make_unsigned<T>::type;
+
 };
 
 #endif 
