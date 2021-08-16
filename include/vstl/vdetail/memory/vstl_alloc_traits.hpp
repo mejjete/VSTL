@@ -5,7 +5,6 @@
 #include <vstl/vdetail/memory/vstl_ptr_traits.hpp>
 #include <vstl/vdetail/type_traits/vstl_make_unsigned.hpp>
 
-#include <type_traits>
 
 namespace vstl
 {
@@ -148,7 +147,7 @@ namespace vstl
             template <typename T, typename = __void_t<>>
             struct isa 
             {
-                typedef vstl::false_type type;
+                typedef typename vstl::is_empty<T>::type type;
             };
 
             template <typename T>
