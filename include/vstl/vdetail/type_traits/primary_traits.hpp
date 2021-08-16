@@ -117,9 +117,6 @@ namespace vstl
     template <typename T>
     struct is_same<T, T> : public vstl::true_type {};
 
-    template <typename T, typename U>
-    using is_same_v = typename vstl::is_same<T, U>::value;
-
     template <typename T>
     struct is_const : public vstl::false_type {};
 
@@ -196,9 +193,6 @@ namespace vstl
         vstl::is_same<long double, typename vstl::remove_cv<T>::type>::value> {};
 
     template <typename T>
-    using is_floating_point_v = typename vstl::is_floating_point<T>::value;
-
-    template <typename T>
     struct is_integral : public vstl::integral_constant<bool, 
         vstl::is_same<bool, typename vstl::remove_cv<T>::type>::value ||
         vstl::is_same<char, typename vstl::remove_cv<T>::type>::value ||
@@ -215,16 +209,10 @@ namespace vstl
         vstl::is_same<unsigned int, typename vstl::remove_cv<T>::type>::value ||
         vstl::is_same<unsigned long int, typename vstl::remove_cv<T>::type>::value ||
         vstl::is_same<unsigned long long int, typename vstl::remove_cv<T>::type>::value> {};
-    
-    template <typename T>
-    using is_integral_v = typename vstl::is_integral<T>::value;
 
     template <typename T>
     struct is_arithmetic : vstl::integral_constant<bool, 
         vstl::is_integral<T>::value || vstl::is_floating_point<T>::value> {};
-
-    template <typename T>
-    using is_arithmetic_v = typename vstl::is_arithmetic<T>::value;
 
     template <typename T>
     struct is_lvalue_reference : public vstl::false_type {};
@@ -334,7 +322,8 @@ namespace vstl
     struct is_union : public vstl::integral_constant<bool, __is_union(T)> {};
 
     template <typename T>
-    struct is_class : public vstl::integral_constant<bool, sizeof(vstl::detail::test<T>(0)) == 1 && !vstl::is_union<T>::value> {};
+    struct is_class : public vstl::integral_constant<bool, 
+        sizeof(vstl::detail::test<T>(0)) == 1 && !vstl::is_union<T>::value> {};
 
     // same implementation
     // template <typename T>
@@ -380,9 +369,6 @@ namespace vstl
         vstl::is_null_pointer<T>::value> {};
 
     template <typename T>
-    using is_scalar_v = typename vstl::is_scalar<T>::type;
-
-    template <typename T>
     struct is_object : public vstl::integral_constant<bool, 
         vstl::is_scalar<T>::value ||
         vstl::is_array<T>::value ||
@@ -398,9 +384,6 @@ namespace vstl
     template <typename T>
     struct is_unsigned<T, false> : public std::false_type {};
 
-    template <typename T>
-    using is_unsigned_v = typename vstl::is_unsigned<T>::value;
-
     template <typename T, bool = 
         vstl::is_arithmetic<T>::value &&
         !vstl::is_unsigned<T>::value>
@@ -410,8 +393,8 @@ namespace vstl
     struct is_signed<T, false> : public vstl::false_type {};
 
     template <typename T>
-    using is_singed_v = typename vstl::is_signed<T>::value;
-
+    struct is_empty : public vstl::integral_constant<bool,
+        !vstl::is_integral<T>::value && sizeof(T) == 1> {};
 }
 
 #endif
