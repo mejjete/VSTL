@@ -53,10 +53,6 @@ namespace vstl
 
 
     template <template<typename...> class Op, typename... Args>
-    using is_detected_v = typename is_detected<Op, Args...>::value;
-
-
-    template <template<typename...> class Op, typename... Args>
     using detected_t = typename is_detected<Op, Args...>::type;
 
 

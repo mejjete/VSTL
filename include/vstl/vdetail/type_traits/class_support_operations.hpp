@@ -50,39 +50,21 @@ namespace vstl
         vstl::is_class<Base>::value && vstl::is_class<Derived>::value, 
         vstl::detail::pre_is_base_of<Base, Derived>, vstl::false_type> {};
 
-    template <typename Base, typename Derived>
-    using is_base_of_v = typename vstl::is_base_of<Base, Derived>::value;
-
     template <typename T, typename... Args>
     struct is_constructible : public vstl::integral_constant<bool, detail::is_constructible_base<T, Args...>::value> {};
-
-    template <typename T>
-    using is_constructible_v = typename vstl::is_constructible<T>::value;
 
     template <typename T>
     struct is_default_constructible : public vstl::is_constructible<T> {};
 
     template <typename T>
-    using is_default_constructible_v = typename vstl::is_default_constructible<T>::value;
-
-    template <typename T>
     struct is_move_constructible : public vstl::is_constructible<T, typename vstl::add_rvalue_reference<T>::type> {};
-
-    template <typename T>
-    using is_move_constructible_v = typename vstl::is_move_constructible<T>::value; 
 
     template <typename T>
     struct is_copy_constructible : public vstl::is_constructible<T, typename vstl::add_lvalue_reference<
         typename vstl::add_const_t<T>>::type> {};
 
     template <typename T>
-    using is_copy_constructible_v = typename vstl::is_copy_constructible<T>::value;
-
-    template <typename T>
     struct is_nothrow_move_constructible : public vstl::integral_constant<bool, detail::is_nothrow_move_constructible_base<T>::value> {};
-
-    template <typename T>
-    using is_nothrow_move_constructible_v = typename vstl::is_nothrow_move_constructible<T>::value;
 }
 
 #endif 

@@ -42,36 +42,21 @@ namespace vstl
     template <typename T>
     struct is_input_iterator : public vstl::integral_constant<bool, vstl::is_same<
         typename vstl::iterator_traits<T>::iterator_category, input_iterator_tag>::value> {};
-    
-    template <typename T>
-    using is_input_iterator_v = typename vstl::is_input_iterator<T>::value;
 
     template <typename T>
     struct is_output_iterator : public vstl::integral_constant<bool, vstl::is_same<
         typename vstl::iterator_traits<T>::iterator_category, output_iterator_tag>::value> {}; 
 
     template <typename T>
-    using is_output_iterator_v = typename vstl::is_output_iterator<T>::value;
-
-    template <typename T>
     struct is_forward_iterator : public vstl::integral_constant<bool, vstl::is_same<
         typename vstl::iterator_traits<T>::iterator_category, forward_iterator_tag>::value> {};
-    
-    template <typename T>
-    using is_forward_iterator_v = typename vstl::is_forward_iterator<T>::value;
 
     template <typename T>
     struct is_bidirectional_iterator : public vstl::integral_constant<bool, vstl::is_same<
         typename vstl::iterator_traits<T>::iterator_category, bidirectional_iterator_tag>::value> {};
-    
-    template <typename T>
-    using is_bidirectional_iterator_v = typename vstl::is_bidirectional_iterator<T>::value;
 
     template <typename T>
     struct is_random_access_iterator : public vstl::integral_constant<bool, vstl::is_same<
         typename vstl::iterator_traits<T>::iterator_category, vstl::random_access_iterator_tag>::value> {};
-    
-    template <typename T>
-    using is_random_access_iterator_v = typename vstl::is_random_access_iterator<T>::value;
 }
 #endif

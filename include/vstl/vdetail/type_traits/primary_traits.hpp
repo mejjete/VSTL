@@ -358,9 +358,6 @@ namespace vstl
         is_null_pointer<T>::value> {};
 
     template <typename T>
-    using is_fundamental_t = typename vstl::is_fundamental<T>::type;
-
-    template <typename T>
     struct is_scalar : public vstl::integral_constant<bool, 
         vstl::is_arithmetic<T>::value ||
         vstl::is_enum<T>::value ||
@@ -374,9 +371,6 @@ namespace vstl
         vstl::is_array<T>::value ||
         vstl::is_union<T>::value ||
         vstl::is_class<T>::value> {};
-
-    template <typename T>
-    using is_object_t = typename vstl::is_object<T>::value;
 
     template <typename T, bool = vstl::is_arithmetic<T>::value>
     struct is_unsigned : public std::integral_constant<bool, T(0) < T(-1)> {};
