@@ -1,3 +1,11 @@
+/* 
+ * Ve.......
+ *
+ *  Prefixes:
+ *  _A_     stands for alias, like typedef or using 
+ *  _I_     stands for item, like varible or similar
+ *  _M_     stands for method    
+*/
 #ifndef VSTL_VECTOR
     #define VSTL_VECTOR
 
@@ -11,26 +19,157 @@
 #include <vstl/iterator.hpp>
 #include <vstl/algorithm.hpp>
 #include <vstl/utility.hpp>
+#include <vstl/memory.hpp>
 
 
 namespace vstl
 {
-    template <typename T>
-    class vector
+
+    /* 
+     *  According to the standard, all memory allocations perform in the base part of the container to 
+     *  simplify exception handling. This class only allocates/deallocates memory for the container.
+     *  The actual construction takes place in the container itself
+    */
+    template <typename T, typename Alloc>
+    struct _Vector_Base 
+    {
+        typedef typename Alloc::template rebind<T>::other 
+            _A_alloc_type;
+
+        typedef typename vstl::allocator_traits<_A_alloc_type>::allocator_type
+            _A_allocator;
+
+        typedef typename vstl::allocator_traits<Alloc>::pointer
+            _A_pointer; 
+
+
+        /* 
+         *  STD-like implementation
+         *  Contains actual pointers to the data
+         *  _I_start and _I_finish specify used chunk of data
+         *  _I_end specify end of the memory area
+        */
+        struct _Vector_Impl_Data
+        {
+            _A_pointer  __I_start;
+            _A_pointer  __I_finish;
+            _A_pointer  __I_end;
+
+            /* default constructor */
+            _Vector_Impl_Data() : __I_start(), __I_finish(), __I_end() {}; 
+
+            /* move constructor */
+            _Vector_Impl_Data(_Vector_Impl_Data&& __rhs) noexcept : 
+            __I_start(__rhs.__I_start), __I_finish(__rhs.__I_finish), __I_end(__rhs.__I_end) 
+            {
+                __rhs.__I_start = __rhs.__I_finish = __rhs.__I_end = _A_pointer();
+            };
+
+            /* shallow copy */
+            void _M_nothrow_copy_data(const _Vector_Impl_Data& __rhs) noexcept
+            {
+                __I_start = __rhs.__I_start;
+                __I_finish = __rhs.__I_finish;
+                __I_end = __rhs.__I_end;
+            };
+
+            /* swap */
+            void _M_nothrow_swap_data(_Vector_Impl_Data& __rhs) noexcept 
+            {
+                _Vector_Impl_Data __temp;
+                __temp._M_nothrow_copy_data(*this);
+                this->_M_nothrow_copy_data(__rhs);
+                __rhs->_M_nothrow_copy_data(__temp);
+            };
+        };
+
+
+        /*  */
+        struct _Vector_Impl : public _A_allocator, public _Vector_Impl_Data
+        {
+            _Vector_Impl() noexcept(vstl::is_nothrow_default_constructible<_A_allocator>::value)
+            {};
+
+
+            _Vector_Impl(const _A_allocator& __a) noexcept(vstl::is_nothrow_copy_constructible<_A_allocator>::value) 
+                : _A_allocator(__a) {};
+
+
+            _Vector_Impl(_A_allocator&& __arhs, _Vector_Impl&& __vrhs) noexcept(vstl::is_nothrow_move_constructible<_A_allocator>::value)
+                : _A_allocator(vstl::move(__arhs)), _Vector_Impl_Data(vstl::move(__vrhs)) {};
+        };
+
+        _Vector_Impl __I_vimpl;
+
+        _A_pointer _M_allocate(size_t __n)
+        {   
+            return __n != 0 ? _A_allocator::allocate(__n) : _A_pointer();
+        };
+
+        void _M_deallocate(_A_pointer __p, size_t __n)
+        {
+            if(__p)
+                __I_vimpl.deallocate(__p,__n);
+        };
+
+        _Vector_Base() = default;
+
+        _Vector_Base(size_t __n) : __I_vimpl()
+        {
+            _M_create_storage(__n);
+        };
+
+        _Vector_Base(_Vector_Base&& __rhs) = default;
+
+        ~_Vector_Base()
+        {
+            _M_deallocate(__I_vimpl.__I_start, __I_vimpl.__I_end - __I_vimpl.__I_start);
+        };
+
+    protected:
+
+        void _M_create_storage(size_t __n)
+        {
+            this->__I_vimpl.__I_start = _M_allocate(__n);
+            this->__I_vimpl.__I_finish = this->__I_vimpl.__I_start;
+            this->__I_vimpl.__I_end = this->__I_vimpl.__I_start + __n;
+        };
+    };
+
+
+    /* ********** */
+
+    template <typename T, typename Allocator = vstl::allocator<T>>
+    class vector : private vstl::_Vector_Base<T, Allocator>
     {
         /* Assertions */
 
         static_assert(vstl::is_same<vstl::remove_cv_t<T>, T>::value, 
-                "vstl::vector must have a non-const, non-volatile type");
+            "vstl::vector<T, Alloc>: T must be a non-const, non-volatile type");
         static_assert(vstl::is_move_constructible<T>::value,
-                "vstl::vector must have a move constructible type");
+            "vstl::vector<T, Alloc>: T must be a move-constructible type");
+        static_assert(vstl::is_same<typename vstl::allocator_traits<Allocator>::value_type, T>::value,
+            "vstl:vector<T, Alloc>: T must be the same as Allocator value type");
         
         private:
-            T* m_data;
-            size_t m_size;
-            int m_used_size;
-            void reallocate_space(int sSize);
-        public:
+            typedef _Vector_Base<T, Allocator>                      _Base;
+            typedef vstl::allocator_traits<Alloc>                   _Alloc_Traits;
+
+        public:         
+            typedef T                                                       value_type;
+            typedef typename _Alloc_Traits::pointer                         pointer;
+            typedef typename _Alloc_Traits::const_pointer                   const_pointer;
+            typedef typename _Alloc_Traits::reference                       reference;
+            typedef typename _Alloc_Traits::const_reference                 const_reference;
+            typedef typename __vstl_cxx::normal_iterator<pointer, vector>   iterator;
+            typedef typename __vstl_cxx::normal_iterator<const_pointer, vector> const_iterator;
+            typedef typename vstl::reverse_iterator<iterator>               reverse_iterator;
+            typedef typename vstl::reverse_iterator<const_iterator>         const_reverse_iterator;
+            typedef size_t                                                  size_type;
+            typedef ptrdiff_t                                               difference_type;
+            typedef Allocator                                               allocator_type;
+
+
             class iterator
             {
                 public:
@@ -45,8 +184,8 @@ namespace vstl
                     iterator() : m_vector(nullptr), m_index(0) {};
                     iterator(vstl::vector<T>* vect, int i = 0) : m_vector(vect), m_index(i) {};
                     iterator(const self_type& iter) : m_vector(iter.m_vector), m_index(iter.m_index) {};
-                    self_type& operator=(const vstl::vector<T>* vect) { m_vector = vect; m_index = vect.m_index; return *this; }; 
-                    self_type& operator=(const vstl::vector<T>::iterator& iter) { m_vector = iter.m_vector; m_index = iter.m_index; return *this; };
+                    self_type& operator=(const vstl::vector<T, Allocator>* vect) { m_vector = vect; m_index = vect.m_index; return *this; }; 
+                    self_type& operator=(const vstl::vector<T, Allocator>::iterator& iter) { m_vector = iter.m_vector; m_index = iter.m_index; return *this; };
                     self_type operator++()          { return self_type(m_vector, ++m_index); };
                     self_type operator++(int)       { return operator++(); };
                     self_type operator--()          { return self_type(m_vector, --m_index); };
@@ -75,9 +214,9 @@ namespace vstl
                     typedef int                                         difference_type;
                     typedef vstl::random_access_iterator_tag            iterator_category;
                     const_iterator() : m_vector(nullptr), m_index(0) {};
-                    const_iterator(vstl::vector<T> *vect, int i = 0) : m_vector(vect), m_index(i) {};
+                    const_iterator(vstl::vector<T, Allocator> *vect, int i = 0) : m_vector(vect), m_index(i) {};
                     const_iterator(const self_type& iter) : m_vector(iter.m_vector), m_index(iter.m_index) {};
-                    self_type& operator=(const vstl::vector<T>* vect) { m_vector = vect; m_index = vect.m_index; return *this; };  
+                    self_type& operator=(const vstl::vector<T, Allocator>* vect) { m_vector = vect; m_index = vect.m_index; return *this; };  
                     self_type operator++()          { return self_type(m_vector, ++m_index); };
                     self_type operator++(int)       { return operator++(); };
                     self_type operator--()          { return self_type(m_vector, --m_index); };
@@ -93,17 +232,19 @@ namespace vstl
                     int m_index;
             };
 
-            typedef vstl::reverse_iterator<T>               reverse_iterator;
-            typedef vstl::reverse_iterator<const T>         const_reverse_iterator;
-
             vector();
             vector(int a, T&& val);
-            vector(const vector<T>& vect);
-            vector(vector<T>&& vect);
+            vector(const vector& vect);
+            vector(vector&& vect);
             vector(const std::initializer_list<T>& list);
+            
+
             template <typename Iter>
             vector(Iter first, Iter last);
+            
+
             ~vector() { ::operator delete[] (m_data); };
+
 
             iterator begin() { return iterator(this, 0); };
             iterator end()   { return iterator(this, m_used_size - 2); };
@@ -116,8 +257,11 @@ namespace vstl
             const_reverse_iterator crbegin() const { return const_reverse_iterator(&m_data[m_used_size - 1]); };
             const_reverse_iterator crend()   const { return const_reverse_iterator(&m_data[0]); };
 
+            
             T& operator[](int i);
             const T& operator[](int i) const;
+
+
             vector<T>& operator=(const vector<T>& vect);
             vector<T>& operator=(std::initializer_list<T>& l);
             vector<T>& operator=(vector<T>&& vect);
@@ -189,14 +333,18 @@ namespace vstl
             friend vector<T> operator+(const vector<T>& v1, const vector<T>& v2) {};
     };
 
-    template <typename T>
-    vector<T>::vector() : m_size(15), m_used_size(2)
+    
+
+#ifdef 0
+
+    template <typename T, typename Allocator>
+    vector<T, Allocator>::vector() : m_size(15), m_used_size(2)
     {
         m_data = static_cast<T*>(::operator new(sizeof(T) * m_size));
     }
 
-    template <typename T>
-    vector<T>::vector(int a, T&& val) : m_used_size(2)
+    template <typename T, typename Allocator>
+    vector<T, Allocator>::vector(int a, T&& val) : m_used_size(2)
     {
         m_size = (a + m_used_size) <= 15 ? 15 : a;
         m_data = static_cast<T*>(::operator new(sizeof(T) * m_size));
@@ -206,16 +354,16 @@ namespace vstl
     }
 
     //placeholder for copy constructor
-    template <typename T>
-    vector<T>::vector(const vector<T>& vect)
+    template <typename T, typename Allocator>
+    vector<T, Allocator>::vector(const vector<T, Allocator>& vect)
     {
         this->m_data = vect.m_data;
         this->m_used_size = vect.m_used_size;
         this->m_size = vect.m_size;
     }
 
-    template <typename T>
-    vector<T>::vector(vector<T>&& vect)
+    template <typename T, typename Allocator>
+    vector<T, Allocator>::vector(vector<T, Allocator>&& vect)
     {
         this->m_data = vect.m_data;
         this->m_used_size = vect.m_used_size;
@@ -226,25 +374,25 @@ namespace vstl
         vect.m_used_size = 2; 
     }
 
-    template <typename T>
-    vector<T>::vector(const std::initializer_list<T>& l) : m_size(l.size()), m_used_size(2)
+    template <typename T, typename Allocator>
+   vector<T, Allocator>::vector(const std::initializer_list<T>& l) : m_size(l.size()), m_used_size(2)
     {
         m_data = static_cast<T*>(::operator new(sizeof(T) * m_size));
         for(auto i = l.begin(); i != l.end(); i++)
             this->push_back(*i);
     }
 
-    template <typename T>
+    template <typename T, typename Allocator>
     template <typename Iter>
-    vector<T>::vector(Iter first, Iter last) : m_size(last - first), m_used_size(2)
+    vector<T, Allocator>::vector(Iter first, Iter last) : m_size(last - first), m_used_size(2)
     {
         reallocate_space(m_size);
         for(auto i = first; i != last; i++)
             this->push_back(*i);
     }
 
-    template <typename T>
-    void vector<T>::push_back(T&& item)
+    template <typename T, typename Allocator>
+    void vector<T, Allocator>::push_back(T&& item)
     {
         if((m_used_size + 1) < m_size)
         {
@@ -255,15 +403,15 @@ namespace vstl
         reallocate_space(m_size * 2);
     };
 
-    template <typename T>
-    void vector<T>::pop_back()
+    template <typename T, typename Allocator>
+    void vector<T, Allocator>::pop_back()
     {
         if(m_used_size > 2)
             m_used_size--;
     };
 
-    template <typename T>
-    void vector<T>::reallocate_space(int sSize)
+    template <typename T, typename Allocator>
+    void vector<T, Allocator>::reallocate_space(int sSize)
     {
         T *ptr = static_cast<T*>(::operator new(sizeof(T) * sSize));
         std::memcpy(ptr, m_data, sizeof(T) * m_size);
@@ -272,28 +420,28 @@ namespace vstl
         m_data = ptr;
     }
 
-    template <typename T>
-    T& vector<T>::operator[](int n)
+    template <typename T, typename Allocator>
+    T& vector<T, Allocator>::operator[](int n)
     {
         return const_cast<T&>(static_cast<const vector<T>&>(*this)[n]);
     }
 
-    template <typename T>
-    const T& vector<T>::operator[](int n) const
+    template <typename T, typename Allocator>
+    const T& vector<T, Allocator>::operator[](int n) const
     {
         if(n >= m_used_size)
             return m_data[0];
         return m_data[n + 1];
     }
 
-    template <typename T>
-    inline void vector<T>::resize(int n)
+    template <typename T, typename Allocator>
+    inline void vector<T, Allocator>::resize(int n)
     {
         reallocate_space(m_size + n);
     }
 
-    template <typename T>
-    void vector<T>::resize(int n, const T& value)
+    template <typename T, typename Allocator>
+    void vector<T, Allocator>::resize(int n, const T& value)
     {
         if(n > m_size)
         {
@@ -303,66 +451,51 @@ namespace vstl
         this->resize(n);
     }
 
-    template <typename T>
-    void vector<T>::clear() noexcept
+    template <typename T, typename Allocator>
+    void vector<T, Allocator>::clear() noexcept
     {
         reallocate_space(15);
         m_used_size = 2;
     }
-
-    template <typename T>
-    void vector<T>::assign(int n, const T& value)
+    
+    template <typename T, typename Allocator>
+    void vector<T, Allocator>::assign(int n, const T& value)
     {
         m_used_size = 2;
         for(int i = 0; i < n; i++)
             this->push_back(value);
     }
 
-    template <typename T>
+    template <typename T, typename Allocator>
     template <typename Iter>
-    void vector<T>::assign(Iter first, Iter last)
+    void vector<T, Allocator>::assign(Iter first, Iter last)
     {
         for(auto i = first; i != last; i++) 
             this->push_back(*i);
     }
 
-    template <typename T>
-    inline void vector<T>::assign(std::initializer_list<T>& l)
+    template <typename T, typename Allocator>
+    inline void vector<T, Allocator>::assign(std::initializer_list<T>& l)
     {
         this->assign(l.begin(), l.end());
     }
 
-    template <typename T>
+    template <typename T, typename Allocator>
     template <typename OutputIter>
-    void vector<T>::assign(iterator first, iterator last, OutputIter output)
+    void vector<T, Allocator>::assign(iterator first, iterator last, OutputIter output)
     {
         for(auto i = first; i != last; i++)
             *i = *output++;
     };
 
-    template <typename T>
-    template <typename ...Argc>
-    T& vector<T>::emplace(const_iterator pos, Argc&& ...argc)
+    template <typename T, typename Allocator>
+    vector<T, Allocator> operator+(vector<T, Allocator>& v1, vector<T, Allocator>& v2)
     {
-        
-    };
-
-    // template <typename U>
-    // vector<U> operator+(const vector<U>& v1)
-    // {
-    //     // vector<U> result;
-    //     // std::memcpy(result, v1.m_data, sizeof(T) * v1.m_used_size);
-    //     // std::memcpy(result + v1.m_used_size, v2.m_data, sizeof(T) * v2.m_used_size);
-    //     // result.m_size = result.m_used_size = v1.m_used_size + v2.m_used_size;
-    //     // return result;
-    // };
-
-    template <typename U>
-    vector<U> operator+(vector<U>& v1, vector<U>& v2)
-    {
-        vector<U> result(v1.begin(), v1.end());
+        vector<T, Allocator> result(v1.begin(), v1.end());
         result.assign(v2.begin(), v2.end());
         return result;
     };
 }
+#endif 
+
 #endif

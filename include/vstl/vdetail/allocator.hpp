@@ -22,7 +22,6 @@ namespace vstl
             using value_type = T;
             using pointer = T*;
             using const_pointer = const T *;
-            using void_pointer = void *;
             using const_void_pointer = const void *;
             using reference = T&;
             using const_reference = const T&;
@@ -39,12 +38,12 @@ namespace vstl
 
             pointer allocate(size_type numObjects)
             {
-                return static_cast<pointer>(operator new(sizeof(T) * numObjects));
+                return static_cast<pointer>(::operator new(sizeof(T) * numObjects));
             };
 
             void deallocate(pointer p, size_type numObject)
             {
-                operator delete(p);
+                ::operator delete(p);
             };
 
             template <typename U, typename... Args>
@@ -60,11 +59,25 @@ namespace vstl
             {
                 return std::numeric_limits<size_type>::max();
             };
-
     };
+
 
     template <typename T>
     using allocator = vstl::__vstl_alloc<T>;
+
+
+    template <typename T, typename U>
+    constexpr bool operator==(const allocator<T>& lhs, const allocator<U>& rhs) noexcept
+    {
+        return true;
+    };
+
+    
+    template <typename T, typename U>
+    constexpr bool operator!=(const allocator<T>& lhs, const allocator<U>& rhs) noexcept
+    {
+        return !(lhs == rhs);
+    };
 }
 
 #endif
