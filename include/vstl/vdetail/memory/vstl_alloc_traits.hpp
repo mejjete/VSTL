@@ -144,18 +144,6 @@ namespace vstl
                 typedef typename T::propagate_on_container_swap type;
             };
 
-            template <typename T, typename = __void_t<>>
-            struct isa 
-            {
-                typedef typename vstl::is_empty<T>::type type;
-            };
-
-            template <typename T>
-            struct isa<T, __void_t<typename T::is_always_equal*>>
-            {
-                typedef typename T::is_always_equal type;
-            };
-
 
         public:
             typedef typename cptr<Alloc>::type      const_pointer;
@@ -167,13 +155,6 @@ namespace vstl
             typedef typename possa<Alloc>::type     propagate_on_container_copy_assignment;
             typedef typename posma<Alloc>::type     propagate_on_container_move_assignment;
             typedef typename pocs<Alloc>::type      propagate_on_container_swap;
-            typedef typename isa<Alloc>::type       is_always_equal;
-
-            using allb::allocate;
-            using allb::deallocate;
-            using allb::construct;
-            using allb::destroy;
-            using allb::max_size;
     };
 };
 
