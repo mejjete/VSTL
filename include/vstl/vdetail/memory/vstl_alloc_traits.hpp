@@ -46,7 +46,7 @@ namespace vstl
             struct cptr
             {
                 typedef typename std::pointer_traits<pointer>::
-                template rebind<const value_type> type;             /* template keyword idicate compiler that rebind is a tempalate */
+                template rebind<const value_type> type;             /* template keyword idicate compiler that rebind is a template */
             };
 
             template <typename T>
@@ -168,6 +168,12 @@ namespace vstl
             typedef typename posma<Alloc>::type     propagate_on_container_move_assignment;
             typedef typename pocs<Alloc>::type      propagate_on_container_swap;
             typedef typename isa<Alloc>::type       is_always_equal;
+
+            using allb::allocate;
+            using allb::deallocate;
+            using allb::construct;
+            using allb::destroy;
+            using allb::max_size;
     };
 };
 
