@@ -17,10 +17,11 @@ namespace vstl
 
 
     /* Plain destruction of object */
-    template <typename _Tp>
-    inline void _Destroy(_Tp *__ptr)
+    template <typename _Tp, typename _Alloc>
+    inline void _Destroy_a(_Tp *__ptr, _Alloc& __alloc)
     {
-        __ptr->~_Tp();
+        if(__ptr)
+            __alloc.destroy(__ptr);
     };
 
 
@@ -29,13 +30,13 @@ namespace vstl
      *  Destroy the collection of objects
      *  Exception handling intentionally ignored for performance reason
     */
-    template <typename _FwdIter>
-    void _Destroy(_FwdIter __fiter, _FwdIter __biter)
+    template <typename _FwdIter, typename _Alloc>
+    void _Destroy_a(_FwdIter __fiter, _FwdIter __biter, _Alloc& __alloc)
     {
         typedef typename vstl::iterator_traits<_FwdIter>::value_type __valtype;
 
         for(; __fiter != __biter; ++__fiter)
-            _Destroy(&(*__fiter));    
+            _Destroy_a(&(*__fiter), __alloc);    
     };
 
 }
