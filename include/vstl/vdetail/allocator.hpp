@@ -47,7 +47,7 @@ namespace vstl
             };
 
             template <typename U, typename... Args>
-            void construct(U* p, Args&& ...args)
+            void construct(U* p, Args&& ...args) const
             {
                 new(p) T(vstl::forward<Args>(args)...);
             };

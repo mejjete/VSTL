@@ -50,7 +50,7 @@ namespace vstl
             };
 
             template <typename T>
-            struct cptr<T, __void_t<typename T::const_pointer>>
+            struct cptr<T, __void_t<typename T::const_pointer*>>
             {
                 typedef typename T::const_pointer type;
             };
