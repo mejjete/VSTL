@@ -1,5 +1,5 @@
 /* 
- *  Ve.......
+ *  Standard Vector Class
  *
  *  Prefixes:
  *  _A_     stands for alias, like typedef or using 
@@ -22,6 +22,13 @@
 #include <vstl/memory.hpp>
 #include <vstl/bits/vstl_initialize.hpp>
 #include <vstl/bits/vstl_iterator.hpp>
+
+
+#ifndef VSTL_VECTOR_DEFAULT_SIZE
+#define __DEF_VECT_SIZE 15
+#else 
+#define __DEF_VECT_SIZE VSTL_VECTOR_DEFAULT_SIZE
+#endif 
 
 
 namespace vstl
@@ -106,17 +113,6 @@ namespace vstl
 
         _Vector_Impl __I_vimpl;
 
-        _A_pointer _M_allocate(size_t __n)
-        {   
-            return __n != 0 ? __I_vimpl.allocate(__n) : _A_pointer();
-        };
-
-        void _M_deallocate(_A_pointer __p, size_t __n)
-        {
-            if(__p)
-                __I_vimpl.deallocate(__p, __n);
-        };
-
         _A_alloc_type& _M_get_allocator() { return this->__I_vimpl; };
 
         _Vector_Base() = default;
@@ -148,24 +144,35 @@ namespace vstl
             this->__I_vimpl.__I_finish = this->__I_vimpl.__I_start;
             this->__I_vimpl.__I_end = this->__I_vimpl.__I_start + __n;
         };
+
+        _A_pointer _M_allocate(size_t __n)
+        {   
+            return __n != 0 ? __I_vimpl.allocate(__n) : _A_pointer();
+        };
+
+        void _M_deallocate(_A_pointer __p, size_t __n)
+        {
+            if(__p)
+                __I_vimpl.deallocate(__p, __n);
+        };
     };
 
 
     /* ********** */
 
     template <typename _Tp, typename _Alloc = vstl::allocator<_Tp>>
-    class vector : private vstl::_Vector_Base<_Tp, _Alloc>
+    class vector : protected vstl::_Vector_Base<_Tp, _Alloc>
     {
-        /* Assertions */
-
-        static_assert(vstl::is_same<vstl::remove_cv_t<_Tp>, _Tp>::value, 
-            "vstl::vector<T, Alloc>: T must be a non-const, non-volatile type");
-        static_assert(vstl::is_move_constructible<_Tp>::value,
-            "vstl::vector<T, Alloc>: T must be a move-constructible type");
-        static_assert(vstl::is_same<typename vstl::allocator_traits<_Alloc>::value_type, _Tp>::value,
-            "vstl:vector<T, Alloc>: T must be the same as Alloc value type");
-        
         private:
+            /* Assertions */
+
+            static_assert(vstl::is_same<vstl::remove_cv_t<_Tp>, _Tp>::value, 
+                "vstl::vector<T, Alloc>: T must be a non-const, non-volatile type");
+            static_assert(vstl::is_move_constructible<_Tp>::value,
+                "vstl::vector<T, Alloc>: T must be a move-constructible type");
+            static_assert(vstl::is_same<typename vstl::allocator_traits<_Alloc>::value_type, _Tp>::value,
+                "vstl:vector<T, Alloc>: T must be the same as Alloc value type");
+        
             typedef _Vector_Base<_Tp, _Alloc>                        _Base;
             typedef vstl::allocator_traits<_Alloc>                   _Alloc_Traits;
 
@@ -189,6 +196,8 @@ namespace vstl
 
             using _Base::_M_create_storage;
             using _Base::_M_get_allocator;
+            using _Base::_M_allocate;
+            using _Base::_M_deallocate;
             using _Base::__I_vimpl;
 
 
@@ -208,17 +217,23 @@ namespace vstl
 
 
             template <typename Iter>
-            vector(Iter first, Iter last);
+            vector(Iter, Iter);
             
 
             ~vector() = default;
 
-        public:
+
+            void push_back(const value_type&);
+            void push_back(value_type&&);
+
 
             iterator begin()    { return iterator(__I_vimpl.__I_start); };
             iterator end()      { return iterator(__I_vimpl.__I_finish); };
 
             size_type capacity() const noexcept { return __I_vimpl.__I_end - __I_vimpl.__I_start; };
+
+        private:
+            void _M_realloc();
     };
 
 
@@ -230,7 +245,7 @@ namespace vstl
         __I_vimpl.__I_finish = __init_with_default_value_a(__I_vimpl.__I_start, __sz, __alloc);
     };
 
-    
+
 
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::vector(size_type __sz, const _Tp& __val, const _Alloc& __alloc) 
@@ -240,7 +255,7 @@ namespace vstl
     };
 
 
-    
+
     template <typename _Tp, typename _Alloc>
     template <typename _InputIter>
     vector<_Tp, _Alloc>::vector(_InputIter __fiter, _InputIter __biter)
@@ -258,6 +273,67 @@ namespace vstl
     vector<_Tp, _Alloc>::vector(std::initializer_list<_Tp> __ulist, const _Alloc& __alloc) : _Base(__alloc)
     {
         __I_vimpl.__I_finish = __init_with_range_a(__I_vimpl.__I_start, __ulist.begin(), __ulist.size(), __I_vimpl);
+    };
+
+
+
+    template <typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::push_back(const value_type& __lhs)
+    {
+        if(__I_vimpl.__I_finish != __I_vimpl.__I_end)
+            __init_with_value(++__I_vimpl.__I_finish, 1, __lhs);
+        else 
+        {
+            _M_realloc();
+            push_back(__lhs);
+        }
+    };
+
+
+
+    template <typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::push_back(value_type&& __rhs)
+    {
+        if(__I_vimpl.__I_finish != __I_vimpl.__I_end)
+            __I_vimpl.__I_finish = __init_with_value(__I_vimpl.__I_finish++, 1, vstl::move(__rhs));
+        else 
+        {
+            _M_realloc();
+            push_back(vstl::move(__rhs));
+        }
+    };
+
+
+
+    template <typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::_M_realloc()
+    {
+        pointer __old_start = __I_vimpl.__I_start;
+        pointer __old_end = __I_vimpl.__I_end;
+        const size_type __old_size = __old_end - __old_start;
+
+        size_type __new_size = ((__old_end - __old_start) * 2);
+        if(__new_size == 0)
+            __new_size = __DEF_VECT_SIZE;
+
+        pointer __new_start = _M_allocate(__new_size);
+        pointer __new_finish;
+        pointer __new_end = __new_start + __new_size;
+
+        try 
+        {  
+            /* copy construct old elements */
+            __new_finish = __init_with_range_a(__new_start, __old_start, __old_size, __I_vimpl);
+        }
+        catch(...)
+        {
+            _M_deallocate(__new_start, __new_finish - __new_start);
+            throw;
+        }
+
+        __I_vimpl.__I_start = __new_start;
+        __I_vimpl.__I_finish = __new_finish;
+        __I_vimpl.__I_end = __new_end;
     };
 }
 #endif
