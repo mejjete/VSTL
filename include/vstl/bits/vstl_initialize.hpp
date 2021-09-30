@@ -11,17 +11,15 @@ namespace vstl
 
     /* 
      *  Copies the value to the range __fiter, __fiter + __n
-     *  Exception handling intentionally ignored
-     * 
      *  Should return the last element in the range
     */
     template <typename _FwdIter, typename _Size, typename _Tp>
-    inline _FwdIter __init_with_value(_FwdIter __fiter, _Size __n, const _Tp& __val)
+    inline _FwdIter __init_with_value(_FwdIter __fiter, _Size __n, _Tp&& __val)
     {
         _FwdIter __cur = __fiter;
 
         for(; __n > 0; --__n, ++__cur)
-            vstl::_Construct(__cur, __val);
+            vstl::_Construct(*(&__cur), vstl::forward<_Tp>(__val));
         return __cur;
     };
     
@@ -35,8 +33,17 @@ namespace vstl
     {
         _FwdIter __cur = __fiter;
 
-        for(; __n > 0; --__n, ++__cur)
-            __alloc.construct(__cur, __val);
+        try
+        {
+            for(; __n > 0; --__n, ++__cur)
+                __alloc.construct(&(*__cur), __val);
+        }
+        catch(...)
+        {
+            vstl::_Destroy_a(__fiter, __cur, __alloc);
+            throw;
+        }
+
         return __cur;
     };
 
@@ -50,9 +57,20 @@ namespace vstl
     template <typename _FwdIter, typename _Size, typename _Alloc>
     inline _FwdIter __init_with_default_value_a(_FwdIter __fiter, _Size __n, _Alloc& __alloc)
     {
-        for(; __n > 0; --__n, ++__fiter)
-            __alloc.construct(&(*__fiter));
-        return __fiter;
+        _FwdIter __cur = __fiter;
+
+        try
+        {
+            for(; __n > 0; --__n, ++__cur)
+                __alloc.construct(&(*__cur));            
+        }
+        catch(...)
+        {
+            vstl::_Destroy_a(__fiter, __cur, __alloc);
+            throw;
+        }
+
+        return __cur;
     };
 
 
@@ -62,9 +80,20 @@ namespace vstl
     template <typename _FirstIter, typename _SecIter, typename _Size, typename _Alloc>
     inline _FirstIter __init_with_range_a(_FirstIter __fiter, _SecIter __siter, _Size __n, _Alloc& __alloc)
     {
-        for(; __n > 0; --__n, ++__fiter, ++__siter)
-            __alloc.construct(&(*__fiter), *__siter);
-        return __fiter;
+        _FirstIter __cur = __fiter;
+
+        try 
+        {
+            for(; __n > 0; --__n, ++__cur, ++__siter)
+                __alloc.construct(&(*__cur), *__siter);
+        }
+        catch(...)
+        {
+            vstl::_Destroy_a(__fiter, __cur, __alloc);
+            throw;
+        }
+
+        return __cur;
     };
 
 }
