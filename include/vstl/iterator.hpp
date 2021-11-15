@@ -4,34 +4,11 @@
 
 #include <vstl/vdetail/vstl_iterator_base.hpp>
 #include <vstl/bits/vstl_iterator.hpp>
+#include <vstl/bits/vstl_iterator_funcs.hpp>
 
 
 namespace vstl
 {   
-    //iterator for sequence container
-    template <typename T>
-    class reverse_iterator
-    {
-        public:
-            typedef vstl::random_access_iterator_tag    iterator_category;
-            typedef reverse_iterator<T>                 self_type;
-            typedef T                                   value_type;
-            typedef T*                                  pointer;
-            typedef T&                                  reference;
-            typedef int                                 difference_type;
-            reverse_iterator() : data_(nullptr) {};
-            reverse_iterator(T* data) : data_(data) {};
-            reverse_iterator(const self_type& iter) : data_(iter.data_) {};
-            self_type& operator=(pointer ptr) { data_ = ptr; };
-            self_type operator++() { return reverse_iterator(data_ = data_ - 1); };
-            self_type operator++(int) { return operator++(); };
-            reference operator*() { return *data_; };
-            bool operator==(const self_type& rhs) { return data_ == rhs.data; };
-            bool operator!=(const self_type& rhs) { return data_ != rhs.data_; };
-        private:
-            pointer data_;
-    };
-
     //base iterator for most common container supported by the stl 
     template <typename T>
     class __base_iterator
@@ -59,6 +36,10 @@ namespace vstl
             container_type& container;
             iterator_type iter;
     };
+
+
+    template <typename T>
+    using reverse_iterator = __base_iterator<T>;
 
     template <typename Container>
     auto begin(Container& c) -> decltype(c.begin())

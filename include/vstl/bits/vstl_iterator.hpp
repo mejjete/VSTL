@@ -35,23 +35,27 @@ namespace __vstl_cxx VSTL_NAMESPACE_VISIBILITY(hidden)
             __rhs.__I_data = pointer();
         }
 
-        reference operator*() const         { return *__I_data; };
-        pointer operator->() const          { return __I_data; };
+        reference operator*() const                                 { return *__I_data; };
+        pointer operator->() const                                  { return __I_data; };
+        reference operator[](difference_type __diff) const noexcept { return __I_data + __diff; };
+
         __normal_iterator operator++()      { ++__I_data; return *this; };
         __normal_iterator operator++(int)   { return __normal_iterator(++__I_data); };
         __normal_iterator operator--()      { --__I_data; return *this; };
         __normal_iterator operator--(int)   { return __normal_iterator(--__I_data); };
 
-        __normal_iterator operator+(difference_type __diff)const{ return __normal_iterator(__I_data + __diff); };
-        __normal_iterator operator-(difference_type __diff)const{ return __normal_iterator(__I_data - __diff); };
+        __normal_iterator& operator+=(difference_type __diff)    { __I_data += __diff; return *this; };
+        __normal_iterator& operator-=(difference_type __diff)    { __I_data -= __diff; return *this; };
 
-        __normal_iterator operator+=(difference_type __diff)    { *this = __normal_iterator(__I_data + __diff); return *this; };
-        __normal_iterator operator-=(difference_type __diff)    { *this = __normal_iterator(__I_data + __diff); return *this; };
-
-        bool base() { return __I_data; };    
+        const pointer base() const { return __I_data; };    
     }; 
 
 
+
+    /**
+     *  In this concept, both iterators are allowed to vary in types, 
+     *  conceptually in cv qualification
+    */
     template <typename _IterL, typename _IterR>
     inline bool operator==(const __normal_iterator<_IterL>& __lhs, const __normal_iterator<_IterR>& __rhs) 
     {
@@ -99,6 +103,34 @@ namespace __vstl_cxx VSTL_NAMESPACE_VISIBILITY(hidden)
     {
         return __lhs > __rhs;
     };
-};
 
+    template <typename _IterL, typename _IterR>
+    inline auto operator-(const __normal_iterator<_IterL>& __lhs, const __normal_iterator<_IterR>& __rhs)
+        noexcept -> decltype(__lhs.base() - __rhs.base())
+    {
+        return __lhs.base() - __rhs.base();
+    };
+
+    template <typename _Iter>
+    inline auto operator-(const __normal_iterator<_Iter>& __lhs, const __normal_iterator<_Iter>& __rhs)
+        noexcept -> decltype(__lhs.base() - __rhs.base())
+    {
+        return __lhs.base() - __rhs.base();
+    };
+
+    template <typename _IterL, typename _IterR>
+    inline auto operator+(const __normal_iterator<_IterL>& __lhs, const __normal_iterator<_IterR>& __rhs)
+        noexcept -> decltype(__lhs.base() - __rhs.base())
+    {
+        return __lhs.base() + __rhs.base();
+    };
+
+    template <typename _Iter>
+    inline auto operator+(const __normal_iterator<_Iter>& __lhs, const __normal_iterator<_Iter>& __rhs)
+        noexcept -> decltype(__lhs.base() + __rhs.base())
+    {
+        return __lhs.base() + __rhs.base();
+    };
+
+};
 #endif 
