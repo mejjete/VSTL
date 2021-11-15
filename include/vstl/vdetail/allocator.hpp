@@ -53,7 +53,7 @@ namespace vstl
             };
 
             template <typename U>
-            void destroy(U *p) { p->~U(); };
+            void destroy(U *p) const { p->~U(); };
             
             size_type max_size() const
             {
