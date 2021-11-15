@@ -3,15 +3,30 @@
 
 
 #include <vstl/type_traits.hpp>
+#include <iterator>
 
 
 namespace vstl
 {
+#ifdef _STL_ITERATOR_BASE_TYPES_H
+
+    /**
+     *  The reason for that awkward iterator tag hierarchy is to stay 
+     *  compatible with standard iterator traits mechanism, and as result,
+     *  with almost all std algorithms
+     */
+    struct input_iterator_tag : std::input_iterator_tag {};
+    struct output_iterator_tag : std::output_iterator_tag {};
+#else 
+
     struct input_iterator_tag {};
     struct output_iterator_tag {};
-    struct forward_iterator_tag : public input_iterator_tag {};
-    struct bidirectional_iterator_tag : public forward_iterator_tag {};
-    struct random_access_iterator_tag : public bidirectional_iterator_tag {};
+
+#endif 
+
+    struct forward_iterator_tag : input_iterator_tag {};
+    struct bidirectional_iterator_tag : forward_iterator_tag {};
+    struct random_access_iterator_tag :  bidirectional_iterator_tag {};
 
 
     /* 

@@ -1,7 +1,7 @@
-*.cpp
-**.exe
+*.exe
 *.txt
 .vscode/
+/*.*
 <<<<<<< HEAD
 *.sh
 *.out

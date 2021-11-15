@@ -201,6 +201,9 @@ namespace vstl
             template <typename _Iterator>
             using _Iter = __vstl_cxx::__normal_iterator<_Iterator>;
 
+            template <typename _Iterator>
+            using _rIter = __vstl_cxx::__reverse_iterator<_Iterator>;
+
 
         public:         
             typedef _Tp                                                     value_type;
@@ -210,8 +213,8 @@ namespace vstl
             typedef const typename _Alloc_Traits::value_type&               const_reference;
             typedef _Iter<pointer>                                          iterator;
             typedef _Iter<const_pointer>                                    const_iterator;
-            // typedef typename vstl::reverse_iterator<iterator>               reverse_iterator;
-            // typedef typename vstl::reverse_iterator<const_iterator>         const_reverse_iterator;
+            typedef _rIter<pointer>                                         reverse_iterator;
+            typedef _rIter<const_pointer>                                   const_reverse_iterator;
             typedef size_t                                                  size_type;
             typedef ptrdiff_t                                               difference_type;
             typedef _Alloc                                                  allocator_type;
@@ -248,6 +251,9 @@ namespace vstl
 
             iterator begin()    { return iterator(__I_vimpl.__I_start); };
             iterator end()      { return iterator(__I_vimpl.__I_finish); };
+            reverse_iterator rbegin()   { return reverse_iterator(__I_vimpl.__I_finish); };
+            reverse_iterator rend()     { return reverse_iterator(__I_vimpl.__I_start); };
+
 
             size_type capacity() const noexcept { return __I_vimpl.__I_end - __I_vimpl.__I_start; };
         private:
@@ -389,14 +395,9 @@ namespace vstl
             throw;
         }
 
-        std::cout << "[Reallocation] " << "old_start: " << __I_vimpl.__I_start;
-
         __I_vimpl.__I_start = __new_start;
         __I_vimpl.__I_finish = __new_finish;
         __I_vimpl.__I_end = __new_end;
-
-        std::cout << " new_start: " << __I_vimpl.__I_start;
-        std::cout << " new_difference: " << __I_vimpl.__I_end - __I_vimpl.__I_start << std::endl;
     };
 }
 #endif
