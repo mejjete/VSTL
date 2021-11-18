@@ -87,7 +87,7 @@ namespace vstl
                 _Vector_Impl_Data __temp;
                 __temp._M_nothrow_copy_data(*this);
                 this->_M_nothrow_copy_data(__rhs);
-                __rhs->_M_nothrow_copy_data(__temp);
+                __rhs._M_nothrow_copy_data(__temp);
             };
         };
 
@@ -155,6 +155,7 @@ namespace vstl
                 __I_vimpl.deallocate(__p, __n);
         };
 
+
         /**
          * @brief Reallocate the vector storage
          * 
@@ -165,6 +166,7 @@ namespace vstl
          */
         void _M_reallocate();
     };
+
 
 
     /**
@@ -232,7 +234,7 @@ namespace vstl
             ~vector();
 
 
-            vector(size_type, const _Alloc& __alloc = _Alloc());
+            explicit vector(size_type, const _Alloc& __alloc = _Alloc());
             vector(size_type, const _Tp&, const _Alloc& __alloc = _Alloc());
 
 
@@ -251,13 +253,25 @@ namespace vstl
 
             iterator begin()    { return iterator(__I_vimpl.__I_start); };
             iterator end()      { return iterator(__I_vimpl.__I_finish); };
+            const_iterator cbegin()     {return const_iterator(__I_vimpl.__I_start); };
+            const_iterator cend()       { return const_iterator(__I_vimpl.__I_finish); };
+
             reverse_iterator rbegin()   { return reverse_iterator(__I_vimpl.__I_finish); };
             reverse_iterator rend()     { return reverse_iterator(__I_vimpl.__I_start); };
+            reverse_iterator crbegin()  { return const_reverse_iterator(__I_vimpl.__I_finish); };
+            reverse_iterator crend()    { return const_reverse_iterator(__I_vimpl.__I_start); };
+
+
+            iterator insert(iterator, const value_type&);
+            iterator insert(iterator, size_type, const value_type&);
+
+            template <typename _InputIter, typename = std::_RequireInputIter<_InputIter>>
+            iterator insert(iterator, _InputIter, _InputIter);
+
+            iterator insert(iterator, std::initializer_list<_Tp>);
 
 
             size_type capacity() const noexcept { return __I_vimpl.__I_end - __I_vimpl.__I_start; };
-        private:
-            void _M_realloc();
     };
 
 
@@ -291,10 +305,9 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     template <typename _InputIter, typename>
     vector<_Tp, _Alloc>::vector(_InputIter __fiter, _InputIter __biter, const _Alloc& __alloc)
-        : _Base(vstl::alg::distance(__fiter, __biter), __alloc)
+        : _Base(vstl::distance(__fiter, __biter), __alloc)
     {
         typedef typename vstl::iterator_traits<_InputIter>::difference_type __difftype;
-        using vstl::alg::distance;
         
         __difftype __diff = distance(__fiter, __biter);
         __I_vimpl.__I_finish = __init_with_range_a(__I_vimpl.__I_start, __fiter, __diff, __I_vimpl);
@@ -334,7 +347,7 @@ namespace vstl
     void vector<_Tp, _Alloc>::push_back(const value_type& __lhs)
     {
         if(__I_vimpl.__I_finish != __I_vimpl.__I_end)
-            __I_vimpl.__I_finish = __init_with_value(__I_vimpl.__I_finish, 1, __lhs);
+            __I_vimpl.__I_finish = __init_with_value_a(__I_vimpl.__I_finish, 1, __lhs, _M_get_allocator());
         else 
         {
             _M_reallocate();
@@ -345,20 +358,148 @@ namespace vstl
 
 
     /**
-     * @brief Same as push_back(const value_type&) but implies on the move semantic
-     *   
+     * @brief Appends given element to the end of the container.
+
      * @param __rhs Item to be added
+     * 
+     * Same as push_back(const value_type&) but implies on the move semantic
      */
     template <typename _Tp, typename _Alloc>
     void vector<_Tp, _Alloc>::push_back(value_type&& __rhs)
     {
         if(__I_vimpl.__I_finish != __I_vimpl.__I_end)
-            __I_vimpl.__I_finish = __init_with_value(__I_vimpl.__I_finish, 1, vstl::move(__rhs));
+            __I_vimpl.__I_finish = __init_with_value_a(__I_vimpl.__I_finish, 1, vstl::move(__rhs), _M_get_allocator());
         else 
         {
             _M_reallocate();
             push_back(vstl::move(__rhs));
         }
+    };
+
+
+
+    /**
+     * @brief Inserts __sz copies of __val before postion specified by __iter
+     * 
+     * @param __iter hint where to insert new elements 
+     * @param __sz copies of element __val to insert
+     * @param __val the element to be inserted  
+     * 
+     * @return vector<_Tp, _Alloc>::iterator
+     * If insertion is successfull, returns iterator of the first inserted element 
+     */
+    template <typename _Tp, typename _Alloc>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, size_type __sz, const value_type& __val)
+    {   
+        // save the iterator 'offset' relative to the begin() because insertion might yeild reallocation
+        difference_type __start_offset = __iter - this->cbegin();
+        size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_finish; 
+        size_type __to_move = (__I_vimpl.__I_finish - __iter.base()) - 1;     // we should descrease to_move by one to exclude end position
+
+        typedef reverse_iterator _ri;
+        typedef const_reverse_iterator _cri;
+
+        if(__free_sz > __sz)
+        {
+            __init_with_range_a(_ri(__I_vimpl.__I_finish + __sz), _ri(__I_vimpl.__I_finish) , __to_move, _M_get_allocator()).base();
+            __init_with_value_a(__I_vimpl.__I_start + __start_offset + 1, __sz, __val, _M_get_allocator());
+            __I_vimpl.__I_finish += __sz;
+        }
+        else 
+        {
+            /**
+             * When additional space required, insertion operation takes next steps:
+             * 1. allocate new storage
+             * 2. move old elements in range [start, iter] into newly allocated storage
+             * 3. construct new elements
+             * 4. move remaining elements within the range (iter, finish) into new storage
+             * finish need not be included into final range because it point to the end, thus
+             * on an invalid object
+             */
+
+            _Base __new_storage((this->capacity() * 3) / 2, _M_get_allocator());
+
+            __new_storage.__I_vimpl.__I_finish = __move_with_range_a(__new_storage.__I_vimpl.__I_start, __I_vimpl.__I_start, __start_offset + 1, _M_get_allocator());
+            __new_storage.__I_vimpl.__I_finish = __init_with_value_a(__new_storage.__I_vimpl.__I_start + __start_offset + 1, __sz, __val, _M_get_allocator());
+            __new_storage.__I_vimpl.__I_finish = __move_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + 1 + __sz, __iter.base() + 1, __to_move, _M_get_allocator());
+            
+            this->__I_vimpl._M_nothrow_swap_data(__new_storage.__I_vimpl);
+            
+            // now __new_storage is an old pointer, we should null this out to avoid unnecessary destructor call
+            _Destroy_a(__new_storage.__I_vimpl.__I_start, __new_storage.__I_vimpl.__I_finish, _M_get_allocator());
+            __new_storage.__I_vimpl.__I_finish = __new_storage.__I_vimpl.__I_start;
+        }
+
+        return __I_vimpl.__I_start + __start_offset + __sz;
+    };
+
+
+
+    /**
+     * @brief Inserts value before __iter
+     * 
+     * @param __iter hint where to insert new element
+     * @param __val element to insert
+     * 
+     * @return vector<_Tp, _Alloc>::iterator 
+     * If insertion is successfull, returns iterator of the first inserted element
+     */
+    template <typename _Tp, typename _Alloc>
+    inline typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, const value_type& __val)
+    {
+        return this->insert(__iter, 1, __val);
+    };
+
+
+
+    /**
+     * @brief 
+     * 
+     * @param __iter hint wher to insert new elements 
+     * @param __ulist source initialier_list
+     * @return vector<_Tp, _Alloc>::iterator 
+     */
+    template <typename _Tp, typename _Alloc>
+    inline typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, std::initializer_list<_Tp> __ulist)
+    {
+        return this->insert(__iter, __ulist.begin(), __ulist.end());
+    };
+
+
+
+    /**
+     * @brief Inserts range specified by [__fiter, __siter) before __iter position
+     * 
+     * @param __iter hint where to insert new elements
+     * @param __fiter source range start
+     * @param __siter source range end
+     * @return vector<_Tp, _Alloc>::iterator
+     * 
+     * If insertion is successfull, returns iterator of the first inserted element.
+     * Because of this function implemented in terms of another template insert function,
+     * thus, does not participate in memory management itself, it can yeild performance penatly
+     */
+    template <typename _Tp, typename _Alloc>
+    template <typename _InputIter, typename>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, _InputIter __fiter, _InputIter __last)
+    {
+        iterator __it;
+        difference_type __iter_offset = __iter - this->begin();
+
+        while(__fiter != __last)
+        {
+            /**
+             * we evaluate hint to insert relative to the current begin
+             * since each call to insert, potentionally, can cause memory 
+             * reallocation and iterator invalidation
+             */
+            __it = this->insert(this->begin() + __iter_offset, 1, *__fiter);
+            __iter_offset++;
+            __fiter++;
+        }
+
+        print_cont(__I_vimpl.__I_start, __I_vimpl.__I_end);
+        return __it;
     };
 
 

@@ -47,6 +47,20 @@ namespace vstl
             public:
                 static const bool value = (sizeof(decltype(f<T>(0))) == sizeof(int));
         };
+
+        template<class T>
+        auto test_returnable(int) -> decltype(
+            void(static_cast<T(*)()>(nullptr)), std::true_type{}
+        );
+        template<class>
+        auto test_returnable(...) -> std::false_type;
+        
+        template<class From, class To>
+        auto test_implicitly_convertible(int) -> decltype(
+            void(std::declval<void(&)(To)>()(std::declval<From>())), std::true_type{}
+        );
+        template<class, class>
+        auto test_implicitly_convertible(...) -> std::false_type;
     }
 
     template <typename Base, typename Derived>
@@ -115,6 +129,13 @@ namespace vstl
 
     template <typename T>
     struct is_destructible<T, __void_t<decltype(vstl::declval<T&>().~T())>> : public vstl::true_type {};    
+
+    template<class From, class To>
+    struct is_convertible : std::integral_constant<bool,
+        (decltype(detail::test_returnable<To>(0))::value &&
+        decltype(detail::test_implicitly_convertible<From, To>(0))::value) ||
+        (std::is_void<From>::value && std::is_void<To>::value)
+    > {};
 }
 
 #endif 

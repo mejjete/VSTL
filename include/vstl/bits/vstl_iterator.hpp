@@ -30,13 +30,11 @@ namespace __vstl_cxx VSTL_NAMESPACE_VISIBILITY(hidden)
 
         __normal_iterator(pointer __ptr = pointer()) : __I_data(__ptr) {};
         
-        __normal_iterator(const __normal_iterator& __rhs) noexcept(vstl::is_nothrow_copy_constructible<_Tp>::value) : __I_data(__rhs.__I_data)
-        {}
-        
-        __normal_iterator(__normal_iterator&& __rhs) noexcept(vstl::is_nothrow_move_constructible<_Tp>::value) : __I_data(__rhs.__I_data)
-        {
-            __rhs.__I_data = pointer();
-        }
+        template <typename _Up, typename = typename vstl::is_same<typename vstl::iterator_traits<_Up>::pointer, pointer>::type>
+        __normal_iterator(const __normal_iterator<_Up>& __lhs) noexcept(vstl::is_nothrow_copy_constructible<_Tp>::value) 
+            : __I_data(__lhs.base()) 
+        {};
+
 
         reference operator*() const                                 { return *__I_data; };
         pointer operator->() const                                  { return __I_data; };
@@ -47,10 +45,14 @@ namespace __vstl_cxx VSTL_NAMESPACE_VISIBILITY(hidden)
         __normal_iterator operator--()      { --__I_data; return *this; };
         __normal_iterator operator--(int)   { return __normal_iterator(--__I_data); };
 
+        __normal_iterator& operator=(const __normal_iterator& __lhs)  { __I_data = __lhs.__I_data; return *this; };
+        
+        __normal_iterator operator+(difference_type __diff)  { return __normal_iterator(__I_data + __diff); };
+
         __normal_iterator& operator+=(difference_type __diff)    { __I_data += __diff; return *this; };
         __normal_iterator& operator-=(difference_type __diff)    { __I_data -= __diff; return *this; };
 
-        const pointer base() const { return __I_data; };    
+        pointer base() const { return __I_data; };    
     }; 
 
 
@@ -161,13 +163,10 @@ namespace __vstl_cxx VSTL_NAMESPACE_VISIBILITY(hidden)
 
         __reverse_iterator(pointer __ptr = pointer()) : __I_data(__ptr) {};
         
-        __reverse_iterator(const __reverse_iterator& __rhs) noexcept(vstl::is_nothrow_copy_constructible<_Tp>::value) : __I_data(__rhs.__I_data)
+        template <typename _Up, typename = typename vstl::is_same<_Up, _Tp>::type>
+        __reverse_iterator(const __reverse_iterator<_Up>& __rhs) noexcept(vstl::is_nothrow_copy_constructible<_Tp>::value) : __I_data(__rhs.__I_data)
         {}
         
-        __reverse_iterator(__reverse_iterator&& __rhs) noexcept(vstl::is_nothrow_move_constructible<_Tp>::value) : __I_data(__rhs.__I_data)
-        {
-            __rhs.__I_data = pointer();
-        }
 
         reference operator*() const                                 { return *(__I_data - 1); };
         pointer operator->() const                                  { return __I_data - 1; };
@@ -177,6 +176,10 @@ namespace __vstl_cxx VSTL_NAMESPACE_VISIBILITY(hidden)
         __reverse_iterator operator++(int)   { return __reverse_iterator(--__I_data); };
         __reverse_iterator operator--()      { ++__I_data; return *this; };
         __reverse_iterator operator--(int)   { return __reverse_iterator(++__I_data); };
+
+        __reverse_iterator& operator=(const __reverse_iterator& __lhs)  { __I_data = __lhs.__I_data; return *this; };
+
+        __reverse_iterator operator+(difference_type __diff)  { return __reverse_iterator(__I_data + __diff); };
 
         __reverse_iterator& operator+=(difference_type __diff)    { __I_data += __diff; return *this; };
         __reverse_iterator& operator-=(difference_type __diff)    { __I_data -= __diff; return *this; };

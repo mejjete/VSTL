@@ -182,15 +182,6 @@ namespace vstl
         {
             fill_out(cl.begin(), cl.end());
         };
-
-        template <typename InputIter>
-        int distance(InputIter first, InputIter last)
-        {
-            int i;
-            for(i = 0; first != last; i++, first++)
-                ;
-            return i;  
-        };
         
         template <typename InputIter>
         int count(InputIter first, InputIter last)

@@ -81,48 +81,10 @@ namespace vstl
     };
 
     
-    template <typename T>
-    struct is_input_iterator : public vstl::integral_constant<bool, vstl::is_same<
-        typename vstl::iterator_traits<T>::iterator_category, input_iterator_tag>::value> {};
-
-    template <typename T>
-    struct is_output_iterator : public vstl::integral_constant<bool, vstl::is_same<
-        typename vstl::iterator_traits<T>::iterator_category, output_iterator_tag>::value> {}; 
-
-    template <typename T>
-    struct is_forward_iterator : public vstl::integral_constant<bool, vstl::is_same<
-        typename vstl::iterator_traits<T>::iterator_category, forward_iterator_tag>::value> {};
-
-    template <typename T>
-    struct is_bidirectional_iterator : public vstl::integral_constant<bool, vstl::is_same<
-        typename vstl::iterator_traits<T>::iterator_category, bidirectional_iterator_tag>::value> {};
-
-    template <typename T>
-    struct is_random_access_iterator : public vstl::integral_constant<bool, vstl::is_same<
-        typename vstl::iterator_traits<T>::iterator_category, vstl::random_access_iterator_tag>::value> {};
-    
     template <typename _Iterator>
     using __iter_category_t = typename vstl::iterator_traits<_Iterator>::iterator_category;
 
-
-    /*
-     *  Instead of using is_convertible<Iterator::category, input_iterator_tag>
-     *  is_assignable can be applied in the same context
-    */
-    template <typename _Iterator, typename _Required>
-    using _RequireIter_t = enable_if_t<is_assignable<add_lvalue_reference_t<__iter_category_t<_Iterator>>, 
-        add_rvalue_reference_t<_Required>>::value, _Required>;
-    
-
-    template <typename _Iter, typename _Required, typename = __void_t<>>
-    struct _RequireIter_v : vstl::false_type {};
-
-    template <typename _Iter, typename _Required>
-    struct _RequireIter_v<_Iter, _Required, __void_t<_RequireIter_t<_Iter, _Required>>> : vstl::true_type {};
-
-
     template <typename _Iterator>
-    using _RequireInputIter = enable_if_t<is_assignable<add_lvalue_reference_t<__iter_category_t<_Iterator>>, 
-        add_rvalue_reference_t<input_iterator_tag>>::value, input_iterator_tag>;
+    using _RequireInputIter = enable_if_t<is_convertible<_Iterator, vstl::input_iterator_tag>::value>;
 }
 #endif
