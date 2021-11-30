@@ -2,7 +2,7 @@
  *  Standard Vector Class
  *
  *  Prefixes:
- *  _A_     stands for alias, like typedef or using 
+ *  _A_     stands for alias, like typedef or using declaration
  *  _I_     stands for item, like variable or similar
  *  _M_     stands for method    
 */
@@ -24,8 +24,8 @@
 #include <vstl/bits/vstl_iterator.hpp>
 
 
-#ifndef __DEF_VECT_SIZE
-#define __DEF_VECT_SIZE 15
+#ifndef __DEF_VSTL_VECTOR_SIZE
+#define __DEF_VSTL_VECTOR_SIZE 15
 #endif 
 
 
@@ -155,15 +155,6 @@ namespace vstl
                 __I_vimpl.deallocate(__p, __n);
         };
 
-
-        /**
-         * @brief Reallocate the vector storage
-         * 
-         * Invalidates all iterator
-         * 
-         * It's not part of the vector class since the vector itself does not 
-         * participate in the allocation/deallocation/reallocation
-         */
         void _M_reallocate();
     };
 
@@ -391,18 +382,18 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, size_type __sz, const value_type& __val)
     {   
-        // save the iterator 'offset' relative to the begin() because insertion might yeild reallocation
+        // save the iterator 'offset' relative to begin() because insertion might yeild reallocation
         difference_type __start_offset = __iter - this->cbegin();
         size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_finish; 
-        size_type __to_move = (__I_vimpl.__I_finish - __iter.base()) - 1;     // we should descrease to_move by one to exclude end position
+        size_type __to_move = (__I_vimpl.__I_finish - __iter.base());
 
         typedef reverse_iterator _ri;
         typedef const_reverse_iterator _cri;
 
         if(__free_sz > __sz)
         {
-            __init_with_range_a(_ri(__I_vimpl.__I_finish + __sz), _ri(__I_vimpl.__I_finish) , __to_move, _M_get_allocator()).base();
-            __init_with_value_a(__I_vimpl.__I_start + __start_offset + 1, __sz, __val, _M_get_allocator());
+            __move_with_range_a(_ri(__I_vimpl.__I_finish + __sz), _cri(__I_vimpl.__I_finish), __to_move, _M_get_allocator());
+            __init_with_value_a(__I_vimpl.__I_start + __start_offset, __sz, __val, _M_get_allocator());
             __I_vimpl.__I_finish += __sz;
         }
         else 
@@ -473,11 +464,12 @@ namespace vstl
      * @param __iter hint where to insert new elements
      * @param __fiter source range start
      * @param __siter source range end
+     * 
      * @return vector<_Tp, _Alloc>::iterator
      * 
      * If insertion is successfull, returns iterator of the first inserted element.
      * Because of this function implemented in terms of another template insert function,
-     * thus, does not participate in memory management itself, it can yeild performance penatly
+     * thus, does not participate in memory management itself, it can yeild performance penalty
      */
     template <typename _Tp, typename _Alloc>
     template <typename _InputIter, typename>
@@ -504,10 +496,14 @@ namespace vstl
 
 
 
-    /**
-     * @brief Do basic reallocation
+    /** 
+     * Do basic reallocation
+
      * 
      * Allocate new space and copy-construct old elements
+     * It's not part of the vector class since the vector itself does not 
+     * participate in the allocation/deallocation/reallocation
+     * 
      * As a side-effect, it invalidates all iterators
      */
     template <typename _Tp, typename _Alloc>
@@ -519,7 +515,7 @@ namespace vstl
 
         _A_size_type __new_size = ((__old_end - __old_start) * 3) / 2;
         if(__new_size == 0)
-            __new_size = __DEF_VECT_SIZE;
+            __new_size = __DEF_VSTL_VECTOR_SIZE;
 
         _A_pointer __new_start = _M_allocate(__new_size);
         _A_pointer __new_finish;

@@ -51,7 +51,7 @@ namespace vstl
 
     /* 
      *  In-place default construction with a given range
-     *  If iterator_traits<_FwdIter>::value_type is not default construtible,
+     *  If iterator_traits<_FwdIter>::value_type is not default constructible,
      *  so using __init_with_default_value would be ill-formed
     */
     template <typename _FwdIter, typename _Size, typename _Alloc>
