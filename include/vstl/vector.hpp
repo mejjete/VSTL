@@ -262,6 +262,13 @@ namespace vstl
             iterator insert(iterator, std::initializer_list<_Tp>);
 
 
+            template <typename... _Args>
+            iterator emplace(iterator, _Args&&...);
+
+            template <typename... _Args>
+            void emplace_back(_Args&&...);
+
+
             size_type capacity() const noexcept { return __I_vimpl.__I_end - __I_vimpl.__I_start; };
     };
 
@@ -446,7 +453,7 @@ namespace vstl
     /**
      * @brief 
      * 
-     * @param __iter hint wher to insert new elements 
+     * @param __iter hint where to insert new elements 
      * @param __ulist source initialier_list
      * @return vector<_Tp, _Alloc>::iterator 
      */
@@ -459,50 +466,91 @@ namespace vstl
 
 
     /**
-     * @brief Inserts range specified by [__fiter, __siter) before __iter position
+     * @brief Inserts range specified by [__first, __last) before __iter position
      * 
      * @param __iter hint where to insert new elements
-     * @param __fiter source range start
-     * @param __siter source range end
+     * @param __first source range start
+     * @param __last source range end
      * 
      * @return vector<_Tp, _Alloc>::iterator
      * 
      * If insertion is successfull, returns iterator of the first inserted element.
-     * Because of this function implemented in terms of another template insert function,
+     * Because of this function implemented in terms of another insert function,
      * thus, does not participate in memory management itself, it can yeild performance penalty
      */
     template <typename _Tp, typename _Alloc>
     template <typename _InputIter, typename>
-    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, _InputIter __fiter, _InputIter __last)
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, _InputIter __first, _InputIter __last)
     {
         iterator __it;
         difference_type __iter_offset = __iter - this->begin();
 
-        while(__fiter != __last)
+        while(__first != __last)
         {
             /**
              * we evaluate hint to insert relative to the current begin
              * since each call to insert, potentionally, can cause memory 
              * reallocation and iterator invalidation
              */
-            __it = this->insert(this->begin() + __iter_offset, 1, *__fiter);
+            __it = this->insert(this->begin() + __iter_offset, 1, *__first);
             __iter_offset++;
-            __fiter++;
+            __first++;
         }
 
-        print_cont(__I_vimpl.__I_start, __I_vimpl.__I_end);
-        return __it;
+        return __it -= __last - __first;
+    };
+
+
+
+    /**
+     * @brief Inserts a new element directly before pos
+     * 
+     * @param __iter hint where to insert newly constructed element 
+     * @param __args arguments to constructor
+     * 
+     * @return vector<_Tp, _Alloc>::iterator 
+     * 
+     * If insertion is successfull, returns iterator of the first inserted element.
+     */
+    template <typename _Tp, typename _Alloc>
+    template <typename... _Args>
+    typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::emplace(iterator __iter, _Args&&... __args)
+    {
+        difference_type __start_offset = __iter - this->cbegin();
+        size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_finish;
+
+        if(__iter == this->end())
+        {
+            _M_get_allocator().construct(__I_vimpl.__I_finish, vstl::forward<_Args>(__args)...);
+            ++__I_vimpl.__I_finish;
+            return __I_vimpl.__I_finish - 1;
+        }
+
+        return this->insert(__iter, value_type(vstl::forward<_Args>(__args)...));
+    };
+
+
+
+    /**
+     * @brief Inserts new element directly at the end 
+     * 
+     * @param __args arguments to constructor  
+     */
+    template <typename _Tp, typename _Alloc>
+    template <typename... _Args>
+    inline void vector<_Tp, _Alloc>::emplace_back(_Args&&... __args)
+    {
+        this->emplace(this->end(), __args...);
     };
 
 
 
     /** 
      * Do basic reallocation
-
      * 
      * Allocate new space and copy-construct old elements
      * It's not part of the vector class since the vector itself does not 
-     * participate in the allocation/deallocation/reallocation
+     * participate in memory management
      * 
      * As a side-effect, it invalidates all iterators
      */
