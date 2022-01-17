@@ -5,7 +5,8 @@
 <<<<<<< HEAD
 *.sh
 *.out
-output 
+output
+test/ 
 =======
 *.o
 makefile

@@ -318,7 +318,7 @@ namespace vstl
     */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::vector(std::initializer_list<_Tp> __ilist, const _Alloc& __alloc) 
-        : _Base(__alloc)
+        : _Base(__ilist.size(), __alloc)
     {
         __I_vimpl.__I_finish = __init_with_range_a(__I_vimpl.__I_start, __ilist.begin(), __ilist.size(), __I_vimpl);
     };
@@ -415,15 +415,16 @@ namespace vstl
              * on an invalid object
              */
 
-            _Base __new_storage((this->capacity() * 3) / 2, _M_get_allocator());
+            size_type __try_capacity = (this->capacity() * 3) / 2; 
+            _Base __new_storage(__try_capacity < __sz ? __sz : __try_capacity, _M_get_allocator());
 
-            __new_storage.__I_vimpl.__I_finish = __move_with_range_a(__new_storage.__I_vimpl.__I_start, __I_vimpl.__I_start, __start_offset + 1, _M_get_allocator());
-            __new_storage.__I_vimpl.__I_finish = __init_with_value_a(__new_storage.__I_vimpl.__I_start + __start_offset + 1, __sz, __val, _M_get_allocator());
-            __new_storage.__I_vimpl.__I_finish = __move_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + 1 + __sz, __iter.base() + 1, __to_move, _M_get_allocator());
+            __new_storage.__I_vimpl.__I_finish = __move_with_range_a(__new_storage.__I_vimpl.__I_start, __I_vimpl.__I_start, __start_offset, _M_get_allocator());
+            __new_storage.__I_vimpl.__I_finish = __init_with_value_a(__new_storage.__I_vimpl.__I_start + __start_offset, __sz, __val, _M_get_allocator());
+            __new_storage.__I_vimpl.__I_finish = __move_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + __sz, __iter.base(), __to_move, _M_get_allocator());
             
             this->__I_vimpl._M_nothrow_swap_data(__new_storage.__I_vimpl);
             
-            // now __new_storage is an old pointer, we should null this out to avoid unnecessary destructor call
+            // now __new_storage is an old pointer, we should null it out to avoid unnecessary destructor call
             _Destroy_a(__new_storage.__I_vimpl.__I_start, __new_storage.__I_vimpl.__I_finish, _M_get_allocator());
             __new_storage.__I_vimpl.__I_finish = __new_storage.__I_vimpl.__I_start;
         }
@@ -519,7 +520,7 @@ namespace vstl
         difference_type __start_offset = __iter - this->cbegin();
         size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_finish;
 
-        if(__iter == this->end())
+        if(__iter == this->end() && __free_sz > 0)
         {
             _M_get_allocator().construct(__I_vimpl.__I_finish, vstl::forward<_Args>(__args)...);
             ++__I_vimpl.__I_finish;
