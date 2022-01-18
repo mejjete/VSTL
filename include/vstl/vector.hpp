@@ -112,7 +112,7 @@ namespace vstl
 
         _Vector_Impl __I_vimpl;
 
-        _A_alloc_type& _M_get_allocator() { return this->__I_vimpl; };
+        const _A_alloc_type& _M_get_allocator() const { return this->__I_vimpl; };
 
         _Vector_Base() = default;
 
@@ -230,8 +230,8 @@ namespace vstl
 
 
             vector(const vector& vect);
-            vector(vector&& vect);
-            vector(std::initializer_list<_Tp>, const _Alloc& __alloc = _Alloc());
+            vector(vector&& vect) = default;
+            vector(std::initializer_list<value_type>, const _Alloc& __alloc = _Alloc());
             
 
             template <typename _InputIter, typename = _RequireInputIter<_InputIter>>
@@ -244,22 +244,22 @@ namespace vstl
 
             iterator begin()    { return iterator(__I_vimpl.__I_start); };
             iterator end()      { return iterator(__I_vimpl.__I_finish); };
-            const_iterator cbegin()     {return const_iterator(__I_vimpl.__I_start); };
-            const_iterator cend()       { return const_iterator(__I_vimpl.__I_finish); };
+            const_iterator cbegin() const   { return const_iterator(__I_vimpl.__I_start); };
+            const_iterator cend() const     { return const_iterator(__I_vimpl.__I_finish); };
 
             reverse_iterator rbegin()   { return reverse_iterator(__I_vimpl.__I_finish); };
             reverse_iterator rend()     { return reverse_iterator(__I_vimpl.__I_start); };
-            reverse_iterator crbegin()  { return const_reverse_iterator(__I_vimpl.__I_finish); };
-            reverse_iterator crend()    { return const_reverse_iterator(__I_vimpl.__I_start); };
+            reverse_iterator crbegin() const { return const_reverse_iterator(__I_vimpl.__I_finish); };
+            reverse_iterator crend() const { return const_reverse_iterator(__I_vimpl.__I_start); };
 
 
             iterator insert(iterator, const value_type&);
             iterator insert(iterator, size_type, const value_type&);
 
-            template <typename _InputIter, typename = std::_RequireInputIter<_InputIter>>
+            template <typename _InputIter, typename = vstl::_RequireInputIter<_InputIter>>
             iterator insert(iterator, _InputIter, _InputIter);
 
-            iterator insert(iterator, std::initializer_list<_Tp>);
+            iterator insert(iterator, std::initializer_list<value_type>);
 
 
             template <typename... _Args>
@@ -269,13 +269,29 @@ namespace vstl
             void emplace_back(_Args&&...);
 
 
+            void assign(size_type, const value_type&);
+            void assign(std::initializer_list<value_type>);
+
+            template <typename _InputIter, typename = vstl::_RequireInputIter<_InputIter>>
+            void assign(_InputIter, _InputIter);
+
+
             size_type capacity() const noexcept { return __I_vimpl.__I_end - __I_vimpl.__I_start; };
+
+
+            vector& operator=(const vector&);
+            vector& operator=(vector&&);
+            vector& operator=(std::initializer_list<value_type>);
     };
 
 
+
     /**
-     *  Create a vector with __sz elements and default initialze them
-    */
+     * @brief Default constructs vector with __sz elements
+     * 
+     * @param __sz count of elements to be default constructed 
+     * @param __alloc optional allocator argument
+     */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::vector(size_type __sz, const _Alloc& __alloc)
         : _Base(__sz, __alloc)
@@ -284,10 +300,29 @@ namespace vstl
     };
 
 
+
     /**
-     *  Create vector with __sz size and initialize it with __sz copies 
-     *  of the __val items
-    */
+     * @brief Copy constructs vector from __vect source
+     * 
+     * @param __vect source vector 
+     * @param __alloc optional allocator argument
+     */
+    template <typename _Tp, typename _Alloc>
+    vector<_Tp, _Alloc>::vector(const vector& __vect)
+        : _Base(__vect.capacity(), __vect._M_get_allocator())
+    {
+        __I_vimpl.__I_finish = __init_with_range_a(__I_vimpl.__I_start, __vect.cbegin(), __vect.capacity(), _M_get_allocator());
+    };
+
+
+
+    /**
+     * @brief Constructs vector with __sz copies of __val instance
+     * 
+     * @param __sz count of elements to be inserted 
+     * @param __val instance of element to be inserted
+     * @param __alloc optional allocator argument
+     */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::vector(size_type __sz, const _Tp& __val, const _Alloc& __alloc) 
         : _Base(__sz, __alloc)
@@ -298,8 +333,12 @@ namespace vstl
 
 
     /**
-     *  Create and initialize vector with [__fiter, __biter) range
-    */
+     * @brief Constructs vector with [__fiter, __biter) range
+     * 
+     * @param __fiter start of source range
+     * @param __biter end of source range
+     * @param __alloc optional allocator argument
+     */
     template <typename _Tp, typename _Alloc>
     template <typename _InputIter, typename>
     vector<_Tp, _Alloc>::vector(_InputIter __fiter, _InputIter __biter, const _Alloc& __alloc)
@@ -314,8 +353,11 @@ namespace vstl
 
 
     /**
-     *  Create and initialize vector with initializer_list
-    */
+     * @brief Constructs vector with initializer_list
+     * 
+     * @param __ilist source initalizer_list
+     * @param __alloc optional allocator argument
+     */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::vector(std::initializer_list<_Tp> __ilist, const _Alloc& __alloc) 
         : _Base(__ilist.size(), __alloc)
@@ -325,9 +367,9 @@ namespace vstl
 
 
 
-    /** 
-     *  Destroy vector 
-    */
+    /**
+     * @brief Destroys the vector object
+     */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::~vector()
     {
@@ -358,8 +400,7 @@ namespace vstl
     /**
      * @brief Appends given element to the end of the container.
 
-     * @param __rhs Item to be added
-     * 
+     * @param __rhs item to be added
      * Same as push_back(const value_type&) but implies on the move semantic
      */
     template <typename _Tp, typename _Alloc>
@@ -452,11 +493,12 @@ namespace vstl
 
 
     /**
-     * @brief 
+     * @brief Inserts all elements of initalizer list into vector befor __iter position
      * 
      * @param __iter hint where to insert new elements 
      * @param __ulist source initialier_list
      * @return vector<_Tp, _Alloc>::iterator 
+     * If insertion is successfull, returns iterator of the first inserted element 
      */
     template <typename _Tp, typename _Alloc>
     inline typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, std::initializer_list<_Tp> __ulist)
@@ -474,7 +516,6 @@ namespace vstl
      * @param __last source range end
      * 
      * @return vector<_Tp, _Alloc>::iterator
-     * 
      * If insertion is successfull, returns iterator of the first inserted element.
      * Because of this function implemented in terms of another insert function,
      * thus, does not participate in memory management itself, it can yeild performance penalty
@@ -489,7 +530,7 @@ namespace vstl
         while(__first != __last)
         {
             /**
-             * we evaluate hint to insert relative to the current begin
+             * We evaluate hint to insert relative to the current begin
              * since each call to insert, potentionally, can cause memory 
              * reallocation and iterator invalidation
              */
@@ -510,7 +551,6 @@ namespace vstl
      * @param __args arguments to constructor
      * 
      * @return vector<_Tp, _Alloc>::iterator 
-     * 
      * If insertion is successfull, returns iterator of the first inserted element.
      */
     template <typename _Tp, typename _Alloc>
@@ -535,7 +575,7 @@ namespace vstl
     /**
      * @brief Inserts new element directly at the end 
      * 
-     * @param __args arguments to constructor  
+     * @param __args constructor arguments
      */
     template <typename _Tp, typename _Alloc>
     template <typename... _Args>
@@ -546,10 +586,118 @@ namespace vstl
 
 
 
+    /**
+     * @brief Assigns new values to the vector
+     * 
+     * @param __sz count of elements to be assigned 
+     * @param __val instance of element to be assigned
+     * Invalidates all interators
+     */
+    template <typename _Tp, typename _Alloc>
+    inline void vector<_Tp, _Alloc>::assign(size_type __sz, const value_type& __val)
+    {
+        vector __temp(__sz, __val);
+        __temp = vstl::move(*this);
+    };
+
+
+    /**
+     * @brief Assigns new values from the range [__fiter, __biter)
+     * 
+     * @param __fiter start range
+     * @param __biter end range
+     */
+    template <typename _Tp, typename _Alloc>
+    template <typename _InputIter, typename>
+    inline void vector<_Tp, _Alloc>::assign(_InputIter __fiter, _InputIter __biter)
+    {
+        vector __temp(__fiter, __biter);
+        __temp = vstl::move(*this);
+    };
+
+
+
+    /**
+     * @brief Assigns new values from initializer_list 
+     * 
+     * @param __ilist input initializer_list 
+     */
+    template <typename _Tp, typename _Alloc>
+    inline void vector<_Tp, _Alloc>::assign(std::initializer_list<value_type> __ilist)
+    {
+        return assign(__ilist.begin(), __ilist.end());
+    };
+
+
+
+    /**
+     * @brief Assigns new values to the vector
+     * 
+     * @param __vect source vector
+     * @return vector<_Tp, _Alloc>& 
+     * Invalidates all iterators
+     */
+    template <typename _Tp, typename _Alloc>
+    inline vector<_Tp, _Alloc>& vector<_Tp, _Alloc>::operator=(vector&& __vect)
+    {
+       this->__I_vimpl._M_nothrow_swap_data(__vect.__I_vimpl);
+       return *this;
+    };
+
+
+
+    /**
+     * @brief Assigns new values from the source vector 
+     * 
+     * @param __vect source vector
+     * @return reference to itself
+     * Invalidates all iterators 
+     */
+    template <typename _Tp, typename _Alloc>
+    vector<_Tp, _Alloc>& vector<_Tp, _Alloc>::operator=(const vector& __vect)
+    {
+        /* Manually destroy current vector values */
+        _Destroy_a(__I_vimpl.__I_start, __I_vimpl.__I_finish, _M_get_allocator());
+        __I_vimpl.__I_start = __I_vimpl.__I_finish = typename _Base::_A_pointer();
+
+        size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_start;
+        if(__free_sz >= __vect.capacity())
+            __I_vimpl.__I_finish = __init_with_range_a(__I_vimpl.__I_start, __vect.cbegin(), __vect.capacity(), _M_get_allocator());
+        else 
+        {
+            /* Deallocate current memory */
+            vector __to_destoy(vstl::move(*this));
+            __to_destoy.~vector();
+
+            vector __temp(__vect);
+            *this = vstl::move(__temp);
+        }
+
+        return *this; 
+    };
+
+
+
+    /**
+     * @brief Assigns new values from an initializer_list
+     * 
+     * @param __ilist input initializer_list 
+     * @return reference to itself
+     * Might invalidates all iterators
+     */
+    template <typename _Tp, typename _Alloc>
+    vector<_Tp, _Alloc>& vector<_Tp, _Alloc>::operator=(std::initializer_list<value_type> __ilist)
+    {
+        assign(__ilist.begin(), __ilist.end());
+        return *this;
+    };
+
+
+
     /** 
      * Do basic reallocation
      * 
-     * Allocate new space and copy-construct old elements
+     * Allocates new space and copy-constructs old elements
      * It's not part of the vector class since the vector itself does not 
      * participate in memory management
      * 
@@ -573,7 +721,7 @@ namespace vstl
         try 
         {  
             /* copy construct old elements */
-            __new_finish = __init_with_range_a(__new_start, __old_start, __old_size, __I_vimpl);
+            __new_finish = __move_with_range_a(__new_start, __old_start, __old_size, __I_vimpl);
         }
         catch(...)
         {
