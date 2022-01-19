@@ -277,11 +277,33 @@ namespace vstl
 
 
             size_type capacity() const noexcept { return __I_vimpl.__I_end - __I_vimpl.__I_start; };
+            size_type size() const noexcept { return __I_vimpl.__I_finish - __I_vimpl.__I_start; };
 
 
             vector& operator=(const vector&);
             vector& operator=(vector&&);
             vector& operator=(std::initializer_list<value_type>);
+
+            
+            typename _Base::_A_alloc_type get_allocator() const noexcept { return _M_get_allocator(); };
+
+            reference at(size_type);
+            const_reference at(size_type) const;
+
+
+            reference operator[](size_type __pos) { return *(__I_vimpl.__I_start + __pos); };
+            const_reference operator[](size_type __pos) const  { return const_cast<reference>(const_cast<const vector&>(*this).operator[](__pos)); };
+
+
+            reference front() noexcept { return *__I_vimpl.__I_start; };
+            const_reference front() const noexcept { return *__I_vimpl.__I_start; };
+
+
+            reference back() noexcept { return --(*__I_vimpl.__I_finish); };
+            const_reference back() const noexcept { return --(*__I_vimpl.__I_finish); };
+
+            pointer data() { return __I_vimpl.__I_start; };
+            const pointer data() const { return __I_vimpl.__I_start; };
     };
 
 
@@ -686,10 +708,40 @@ namespace vstl
      * Might invalidates all iterators
      */
     template <typename _Tp, typename _Alloc>
-    vector<_Tp, _Alloc>& vector<_Tp, _Alloc>::operator=(std::initializer_list<value_type> __ilist)
+    inline vector<_Tp, _Alloc>& vector<_Tp, _Alloc>::operator=(std::initializer_list<value_type> __ilist)
     {
         assign(__ilist.begin(), __ilist.end());
         return *this;
+    };
+
+
+
+    /**
+     * @brief Returns the element at __pos position 
+     * 
+     * @param __pos position in vector
+     * @return reference to element at __pos position
+     */
+    template <typename _Tp, typename _Alloc>
+    inline typename vector<_Tp, _Alloc>::reference vector<_Tp, _Alloc>::at(size_type __pos)
+    {
+        return const_cast<reference>(const_cast<const vector&>(*this).at(__pos));
+    };
+
+
+
+    /**
+     * @brief Returns the element at __pos position 
+     * 
+     * @param __pos position in vector
+     * @return reference to element at __pos position
+     */
+    template <typename _Tp, typename _Alloc>
+    inline typename vector<_Tp, _Alloc>::const_reference vector<_Tp, _Alloc>::at(size_type __pos) const
+    {
+        if(__pos >= this->size())
+            throw std::out_of_range("vstl::vector::at() : not a valid offset");
+        return *(__I_vimpl.__I_start + __pos);
     };
 
 
