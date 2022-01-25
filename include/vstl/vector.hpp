@@ -22,6 +22,7 @@
 #include <vstl/memory.hpp>
 #include <vstl/bits/vstl_initialize.hpp>
 #include <vstl/bits/vstl_iterator.hpp>
+#include <vstl/vdetail/tempimpl/vector.inl>
 
 
 #ifndef __DEF_VSTL_VECTOR_SIZE
@@ -287,6 +288,7 @@ namespace vstl
             
             typename _Base::_A_alloc_type get_allocator() const noexcept { return _M_get_allocator(); };
 
+
             reference at(size_type);
             const_reference at(size_type) const;
 
@@ -304,6 +306,12 @@ namespace vstl
 
             pointer data() { return __I_vimpl.__I_start; };
             const pointer data() const { return __I_vimpl.__I_start; };
+
+
+            bool empty() const noexcept { return __I_vimpl.__I_start == __I_vimpl.__I_finish; };
+
+            
+            // size_type max_size() const { return std::numeric_limits<int>::max / sizeof(value_type); };
     };
 
 
@@ -316,7 +324,7 @@ namespace vstl
      */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::vector(size_type __sz, const _Alloc& __alloc)
-        : _Base(__sz, __alloc)
+        : _Base(__check_seq_size(__sz, __alloc), __alloc)
     {
         __I_vimpl.__I_finish = __init_with_default_value_a(__I_vimpl.__I_start, __sz, __alloc);
     };
@@ -347,7 +355,7 @@ namespace vstl
      */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::vector(size_type __sz, const _Tp& __val, const _Alloc& __alloc) 
-        : _Base(__sz, __alloc)
+        : _Base(__check_seq_size(__sz, __alloc), __alloc)
     {
         __I_vimpl.__I_finish = __init_with_value_a(__I_vimpl.__I_start, __sz, __val, __alloc);
     };
@@ -364,7 +372,7 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     template <typename _InputIter, typename>
     vector<_Tp, _Alloc>::vector(_InputIter __fiter, _InputIter __biter, const _Alloc& __alloc)
-        : _Base(vstl::distance(__fiter, __biter), __alloc)
+        : _Base(__check_seq_size(vstl::distance(__fiter, __biter), __alloc), __alloc)
     {
         typedef typename vstl::iterator_traits<_InputIter>::difference_type __difftype;
         
@@ -382,7 +390,7 @@ namespace vstl
      */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::vector(std::initializer_list<_Tp> __ilist, const _Alloc& __alloc) 
-        : _Base(__ilist.size(), __alloc)
+        : _Base(__check_seq_size(__ilist.size(), __alloc), __alloc)
     {
         __I_vimpl.__I_finish = __init_with_range_a(__I_vimpl.__I_start, __ilist.begin(), __ilist.size(), __I_vimpl);
     };
@@ -515,7 +523,7 @@ namespace vstl
 
 
     /**
-     * @brief Inserts all elements of initalizer list into vector befor __iter position
+     * @brief Inserts all elements of initalizer list into vector before __iter position
      * 
      * @param __iter hint where to insert new elements 
      * @param __ulist source initialier_list

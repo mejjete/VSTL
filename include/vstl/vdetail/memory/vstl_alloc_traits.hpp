@@ -1,5 +1,5 @@
-#ifndef VSTL_ALLOCATOR_TRAITS
-    #define VSTL_ALLOCATOR_TRAITS
+#ifndef VSTL_ALLOCATOR_TRAITS_H
+#define VSTL_ALLOCATOR_TRAITS_H
 
 
 #include <vstl/vdetail/memory/vstl_ptr_traits.hpp>
@@ -144,6 +144,19 @@ namespace vstl
                 typedef typename T::propagate_on_container_swap type;
             };
 
+            template <typename _Tp, typename = __void_t<>>
+            struct __max_size_t
+            {
+                static constexpr _Tp max_size() { return std::numeric_limits<_Tp>::max(); };
+            };
+
+            template <typename _Tp>
+            struct __max_size_t<_Tp, __void_t<decltype(_Tp::max_size())>>
+            {
+                static constexpr auto max_size() -> decltype(_Tp::max_size()) 
+                { return _Tp::max_size(); };
+            };
+
 
         public:
             typedef typename cptr<Alloc>::type      const_pointer;
@@ -155,6 +168,16 @@ namespace vstl
             typedef typename possa<Alloc>::type     propagate_on_container_copy_assignment;
             typedef typename posma<Alloc>::type     propagate_on_container_move_assignment;
             typedef typename pocs<Alloc>::type      propagate_on_container_swap;
+
+
+            /**
+             * If allocator_type does not have static function max_size, then
+             * orginary std::numeric_limits<_Tp>::max will be used 
+             * 
+             * @return maximum value which _Tp might potentionally accomodate 
+             */
+            static constexpr auto max_size() -> decltype(__max_size_t<allocator_type>::max_size())
+            { return __max_size_t<allocator_type>::max_size(); };
     };
 };
 
