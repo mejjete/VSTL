@@ -12,11 +12,13 @@ namespace vstl
     using __iter_diff_t = typename vstl::iterator_traits<_Iter>::difference_type;
 
 
+
     template <typename _Iter>
     inline __iter_diff_t<_Iter> __distance(_Iter __pos1, _Iter __pos2, vstl::random_access_iterator_tag)
     {
         return __pos2 - __pos1;
     };
+
 
 
     template <typename _Iter>
@@ -28,6 +30,7 @@ namespace vstl
             __diff++;
         return __diff;
     };
+
 
 
     /**
@@ -45,6 +48,7 @@ namespace vstl
     };
 
 
+
     template <typename _Iter>
     inline void __advance(_Iter& __iter, __iter_diff_t<_Iter> __n, vstl::input_iterator_tag)
     {
@@ -52,6 +56,7 @@ namespace vstl
         while(--__n)
             ++__iter;
     };
+
 
 
     template <typename _Iter>
@@ -75,6 +80,7 @@ namespace vstl
     {
         __iter += __n;
     };
+
 
 
     /**

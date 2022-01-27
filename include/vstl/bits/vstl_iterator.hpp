@@ -56,6 +56,7 @@ namespace __vstl_cxx VSTL_NAMESPACE_VISIBILITY(hidden)
     }; 
 
 
+
     /**
      *  In this concept, both iterators are allowed to vary in types, 
      *  conceptually in cv qualification
@@ -138,7 +139,7 @@ namespace __vstl_cxx VSTL_NAMESPACE_VISIBILITY(hidden)
 
 
 
-        /**
+    /**
      *  Reverse iterator for standard sequence container 
      *  
      *  Since the __reverse_iterator impelemted in terms of std compatibility,
