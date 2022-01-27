@@ -4,6 +4,7 @@
 
 #include <limits>
 #include <vstl/memory.hpp>
+#include <vstl/algorithm.hpp>
 
 
 template <typename _Tp>
@@ -27,9 +28,9 @@ inline _A_size_type<_Alloc> __max_seq_size(const _Alloc& __alloc) noexcept
      * hence, we can't store value greater than std::numeric_limist<std::ptrdiff_t>::max even if 
      * allocator says we can
      */
-    auto __max_ptr_size = std::numeric_limits<typename _Alloc::value_type>::max();
+    auto __max_ptr_size = std::numeric_limits<std::ptrdiff_t>::max();
     auto __max_alloc_size = vstl::allocator_traits<_Alloc>::max_size();
-    return std::min(__max_ptr_size, __max_alloc_size);    
+    return vstl::__aux_min(__max_ptr_size, __max_alloc_size);    
 };
 
 
@@ -43,9 +44,9 @@ inline _A_size_type<_Alloc> __max_seq_size(const _Alloc& __alloc) noexcept
  * exception std::length_error is thrown
  */
 template <typename _Tp, typename _Alloc>
-inline _A_size_type<_Tp> __check_seq_size(_A_size_type<_Tp> __sz, const _Alloc& __alloc)
+inline _Tp __check_seq_size(_Tp __sz, const _Alloc& __alloc)
 {
-    if(__sz > __max_seq_size<_Tp>(__alloc))
+    if(__sz > __max_seq_size(__alloc))
         throw std::length_error("__check_seq_size error : invalid length of sequence container");
     return __sz;
 };

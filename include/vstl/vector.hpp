@@ -156,7 +156,7 @@ namespace vstl
                 __I_vimpl.deallocate(__p, __n);
         };
 
-        void _M_reallocate();
+        void _M_reallocate(_A_size_type __request_size = _A_size_type());
     };
 
 
@@ -311,7 +311,10 @@ namespace vstl
             bool empty() const noexcept { return __I_vimpl.__I_start == __I_vimpl.__I_finish; };
 
             
-            // size_type max_size() const { return std::numeric_limits<int>::max / sizeof(value_type); };
+            size_type max_size() const { return __max_seq_size(get_allocator()); };
+
+            
+            void reserve(size_type);
     };
 
 
@@ -754,6 +757,24 @@ namespace vstl
 
 
 
+    /**
+     * @brief Reserves storage 
+     *  
+     * @param __new_size size request
+     */
+    template <typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::reserve(size_type __new_size)
+    {
+        if(__new_size <= capacity())
+            return;
+        if(__new_size >= max_size())
+            throw std::length_error("vstl::vector::reserve - invalid vector size");
+        
+        _M_reallocate(__new_size);
+    };  
+
+
+
     /** 
      * Do basic reallocation
      * 
@@ -764,24 +785,30 @@ namespace vstl
      * As a side-effect, it invalidates all iterators
      */
     template <typename _Tp, typename _Alloc>
-    void _Vector_Base<_Tp, _Alloc>::_M_reallocate()
+    void _Vector_Base<_Tp, _Alloc>::_M_reallocate(_A_size_type __request_size)
     {
         _A_pointer __old_start = __I_vimpl.__I_start;
         _A_pointer __old_end = __I_vimpl.__I_end;
         const _A_size_type __old_size = __old_end - __old_start;
 
-        _A_size_type __new_size = ((__old_end - __old_start) * 3) / 2;
+        _A_size_type __new_size = __check_seq_size(__request_size, _M_get_allocator());
+
         if(__new_size == 0)
-            __new_size = __DEF_VSTL_VECTOR_SIZE;
+        {
+            if(__old_size == 0)
+                __new_size = __DEF_VSTL_VECTOR_SIZE;
+            else 
+                __new_size = __check_seq_size(((__old_size * 3) / 2), _M_get_allocator());
+        }        
 
         _A_pointer __new_start = _M_allocate(__new_size);
-        _A_pointer __new_finish;
+        _A_pointer __new_finish = __new_start;
         _A_pointer __new_end = __new_start + __new_size;
 
         try 
         {  
-            /* copy construct old elements */
-            __new_finish = __move_with_range_a(__new_start, __old_start, __old_size, __I_vimpl);
+            /* move constructs old elements */
+            __new_finish = __move_with_range_a(__new_start, __old_start, __old_size, _M_get_allocator());
         }
         catch(...)
         {
