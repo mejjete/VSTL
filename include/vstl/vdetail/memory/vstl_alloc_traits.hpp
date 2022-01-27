@@ -144,17 +144,18 @@ namespace vstl
                 typedef typename T::propagate_on_container_swap type;
             };
 
-            template <typename _Tp, typename = __void_t<>>
+            template <typename _Alloc, typename = __void_t<>>
             struct __max_size_t
             {
-                static constexpr _Tp max_size() { return std::numeric_limits<_Tp>::max(); };
+                static constexpr typename _Alloc::size_type max_size() 
+                { return std::numeric_limits<typename _Alloc::size_type>::max() / sizeof(value_type); };
             };
 
-            template <typename _Tp>
-            struct __max_size_t<_Tp, __void_t<decltype(_Tp::max_size())>>
+            template <typename _Alloc>
+            struct __max_size_t<_Alloc, __void_t<decltype(_Alloc::max_size())>>
             {
-                static constexpr auto max_size() -> decltype(_Tp::max_size()) 
-                { return _Tp::max_size(); };
+                static constexpr auto max_size() -> decltype(_Alloc::max_size()) 
+                { return _Alloc::max_size(); };
             };
 
 
@@ -172,9 +173,10 @@ namespace vstl
 
             /**
              * If allocator_type does not have static function max_size, then
-             * orginary std::numeric_limits<_Tp>::max will be used 
+             * orginary std::numeric_limits<size_type>::max() / sizeof(value_type) will be used
+             * as return value 
              * 
-             * @return maximum value which _Tp might potentionally accomodate 
+             * @return maximum value which allocator_type::size_type might potentionally accomodate 
              */
             static constexpr auto max_size() -> decltype(__max_size_t<allocator_type>::max_size())
             { return __max_size_t<allocator_type>::max_size(); };

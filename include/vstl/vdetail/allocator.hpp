@@ -57,7 +57,7 @@ namespace vstl
             
             size_type max_size() const
             {
-                return std::numeric_limits<size_type>::max();
+                return std::numeric_limits<size_type>::max() / sizeof(value_type);
             };
     };
 
