@@ -177,8 +177,6 @@ namespace vstl
              */
             static_assert(vstl::is_same<vstl::remove_cv_t<_Tp>, _Tp>::value, 
                 "vstl::vector<T, Alloc>: T must be a non-const, non-volatile type");
-            static_assert(vstl::is_move_constructible<_Tp>::value,
-                "vstl::vector<T, Alloc>: T must be a move-constructible type");
 
         
             typedef _Vector_Base<_Tp, _Alloc>                        _Base;
@@ -473,7 +471,7 @@ namespace vstl
 
         if(__free_sz > __sz)
         {
-            __move_with_range_a(_ri(__I_vimpl.__I_finish + __sz), _cri(__I_vimpl.__I_finish), __to_move, _M_get_allocator());
+            __copy_or_move_with_range_a(_ri(__I_vimpl.__I_finish + __sz), _cri(__I_vimpl.__I_finish), __to_move, _M_get_allocator());
             __init_with_value_a(__I_vimpl.__I_start + __start_offset, __sz, __val, _M_get_allocator());
             __I_vimpl.__I_finish += __sz;
         }
@@ -492,9 +490,14 @@ namespace vstl
             size_type __try_capacity = (this->capacity() * 3) / 2; 
             _Base __new_storage(__try_capacity < __sz ? __sz : __try_capacity, _M_get_allocator());
 
-            __new_storage.__I_vimpl.__I_finish = __move_with_range_a(__new_storage.__I_vimpl.__I_start, __I_vimpl.__I_start, __start_offset, _M_get_allocator());
-            __new_storage.__I_vimpl.__I_finish = __init_with_value_a(__new_storage.__I_vimpl.__I_start + __start_offset, __sz, __val, _M_get_allocator());
-            __new_storage.__I_vimpl.__I_finish = __move_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + __sz, __iter.base(), __to_move, _M_get_allocator());
+            __new_storage.__I_vimpl.__I_finish = __copy_or_move_with_range_a(__new_storage.__I_vimpl.__I_start, 
+                __I_vimpl.__I_start, __start_offset, _M_get_allocator());
+            
+            __new_storage.__I_vimpl.__I_finish = __init_with_value_a(__new_storage.__I_vimpl.__I_start + __start_offset, 
+                __sz, __val, _M_get_allocator());
+            
+            __new_storage.__I_vimpl.__I_finish = __copy_ormove_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + __sz, 
+                __iter.base(), __to_move, _M_get_allocator());
             
             this->__I_vimpl._M_nothrow_swap_data(__new_storage.__I_vimpl);
             
@@ -808,7 +811,7 @@ namespace vstl
         try 
         {  
             /* move constructs old elements */
-            __new_finish = __move_with_range_a(__new_start, __old_start, __old_size, _M_get_allocator());
+            __new_finish = __copy_or_move_with_range_a(__new_start, __old_start, __old_size, _M_get_allocator());
         }
         catch(...)
         {
