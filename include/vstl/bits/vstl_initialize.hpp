@@ -19,7 +19,7 @@ namespace vstl
         _FwdIter __cur = __fiter;
 
         for(; __n > 0; --__n, ++__cur)
-            vstl::_Construct(*(&__cur), vstl::forward<_Tp>(__val));
+            vstl::_Construct(vstl::addressof(*__cur), vstl::forward<_Tp>(__val));
         return __cur;
     };
     
@@ -36,7 +36,7 @@ namespace vstl
         try
         {
             for(; __n > 0; --__n, ++__cur)
-                __alloc.construct(&(*__cur), vstl::forward<_Tp>(__val));
+                __alloc.construct(vstl::addressof(*__cur), vstl::forward<_Tp>(__val));
         }
         catch(...)
         {
@@ -62,7 +62,7 @@ namespace vstl
         try
         {
             for(; __n > 0; --__n, ++__cur)
-                __alloc.construct(&(*__cur));            
+                __alloc.construct(vstl::addressof(*__cur));            
         }
         catch(...)
         {
@@ -85,7 +85,7 @@ namespace vstl
         try 
         {
             for(; __n > 0; --__n, ++__cur, ++__siter)
-                __alloc.construct(&(*__cur), *__siter);
+                __alloc.construct(vstl::addressof(*__cur), *__siter);
         }
         catch(...)
         {
@@ -108,7 +108,7 @@ namespace vstl
         try 
         {
             for(; __n > 0; --__n, ++__cur, ++__siter)
-                __alloc.construct(&(*__cur), vstl::move(*__siter));
+                __alloc.construct(vstl::addressof(*__cur), vstl::move(*__siter));
         }
         catch(...)
         {
@@ -157,7 +157,7 @@ namespace vstl
         try
         {
             for(; __n > 0; --__n, ++__cur, ++__siter)
-                __alloc.construct(&(*__cur), __copy_or_move_caller<value_type>::__call_copy_or_move(*__siter));
+                __alloc.construct(vstl::addressof(*__cur), __copy_or_move_caller<value_type>::__call_copy_or_move(*__siter));
         }
         catch(...)
         {

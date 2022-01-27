@@ -11,13 +11,11 @@
 
 namespace vstl
 {
-    template <typename T>
-    typename vstl::enable_if<vstl::is_object<T>::value, T*>::type
-    addressof(T& arg) 
-    { 
-        return reinterpret_cast<T*>(
-        &const_cast<char&>(reinterpret_cast<char&>(arg)));
-    }   
+    template <typename _Tp>
+    inline _Tp* addressof(_Tp& __address)
+    {
+        return const_cast<_Tp *>(reinterpret_cast<const _Tp*>(&reinterpret_cast<const char &>(__address)));
+    };
 };
 
 #endif
