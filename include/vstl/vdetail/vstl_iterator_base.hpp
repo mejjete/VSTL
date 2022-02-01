@@ -1,5 +1,5 @@
-#ifndef VSTL_ITERATOR_BASE
-    #define VSTL_ITERATOR_BASE
+#ifndef VSTL_ITERATOR_BASE_H
+#define VSTL_ITERATOR_BASE_H
 
 
 #include <vstl/type_traits.hpp>
@@ -26,7 +26,7 @@ namespace vstl
 
     struct forward_iterator_tag : input_iterator_tag {};
     struct bidirectional_iterator_tag : forward_iterator_tag {};
-    struct random_access_iterator_tag :  bidirectional_iterator_tag {};
+    struct random_access_iterator_tag : bidirectional_iterator_tag {};
 
 
     /* 
@@ -85,6 +85,7 @@ namespace vstl
     using __iter_category_t = typename vstl::iterator_traits<_Iterator>::iterator_category;
 
     template <typename _Iterator>
-    using _RequireInputIter = enable_if_t<is_convertible<_Iterator, vstl::input_iterator_tag>::value>;
+    using _RequireInputIter = enable_if_t<is_convertible<__iter_category_t<_Iterator>, 
+        vstl::input_iterator_tag>::value>;
 }
 #endif

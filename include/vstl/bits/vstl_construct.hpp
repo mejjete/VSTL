@@ -3,6 +3,7 @@
 
 
 #include <vstl/utility.hpp>
+#include <vstl/memory.hpp>
 
 
 namespace vstl
@@ -36,7 +37,7 @@ namespace vstl
         typedef typename vstl::iterator_traits<_FwdIter>::value_type __valtype;
 
         for(; __fiter != __biter; ++__fiter)
-            _Destroy_a(&(*__fiter), __alloc);    
+            _Destroy_a(vstl::addressof(*__fiter), __alloc);    
     };
 
 }

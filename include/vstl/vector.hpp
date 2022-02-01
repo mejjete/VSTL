@@ -219,27 +219,21 @@ namespace vstl
             using _Base::__I_vimpl;
             using _Base::_M_reallocate;
 
-
             vector() = default;
             ~vector();
 
-
-            explicit vector(size_type, const _Alloc& __alloc = _Alloc());
+            explicit vector(size_type);
             vector(size_type, const _Tp&, const _Alloc& __alloc = _Alloc());
-
 
             vector(const vector& vect);
             vector(vector&& vect) = default;
-            vector(std::initializer_list<value_type>, const _Alloc& __alloc = _Alloc());
-            
+            vector(std::initializer_list<value_type>, const _Alloc& __alloc = _Alloc());            
 
             template <typename _InputIter, typename = _RequireInputIter<_InputIter>>
             vector(_InputIter, _InputIter, const _Alloc& __alloc = _Alloc());
 
-
             void push_back(const value_type&);
             void push_back(value_type&&);
-
 
             iterator begin()    { return iterator(__I_vimpl.__I_start); };
             iterator end()      { return iterator(__I_vimpl.__I_finish); };
@@ -251,7 +245,6 @@ namespace vstl
             reverse_iterator crbegin() const { return const_reverse_iterator(__I_vimpl.__I_finish); };
             reverse_iterator crend() const { return const_reverse_iterator(__I_vimpl.__I_start); };
 
-
             iterator insert(iterator, const value_type&);
             iterator insert(iterator, size_type, const value_type&);
 
@@ -260,13 +253,11 @@ namespace vstl
 
             iterator insert(iterator, std::initializer_list<value_type>);
 
-
             template <typename... _Args>
             iterator emplace(iterator, _Args&&...);
 
             template <typename... _Args>
             void emplace_back(_Args&&...);
-
 
             void assign(size_type, const value_type&);
             void assign(std::initializer_list<value_type>);
@@ -274,45 +265,37 @@ namespace vstl
             template <typename _InputIter, typename = vstl::_RequireInputIter<_InputIter>>
             void assign(_InputIter, _InputIter);
 
-
             size_type capacity() const noexcept { return __I_vimpl.__I_end - __I_vimpl.__I_start; };
             size_type size() const noexcept { return __I_vimpl.__I_finish - __I_vimpl.__I_start; };
-
 
             vector& operator=(const vector&);
             vector& operator=(vector&&);
             vector& operator=(std::initializer_list<value_type>);
-
             
             typename _Base::_A_alloc_type get_allocator() const noexcept { return _M_get_allocator(); };
-
 
             reference at(size_type);
             const_reference at(size_type) const;
 
-
             reference operator[](size_type __pos) { return *(__I_vimpl.__I_start + __pos); };
             const_reference operator[](size_type __pos) const  { return const_cast<reference>(const_cast<const vector&>(*this).operator[](__pos)); };
-
 
             reference front() noexcept { return *__I_vimpl.__I_start; };
             const_reference front() const noexcept { return *__I_vimpl.__I_start; };
 
-
             reference back() noexcept { return --(*__I_vimpl.__I_finish); };
             const_reference back() const noexcept { return --(*__I_vimpl.__I_finish); };
 
-            pointer data() { return __I_vimpl.__I_start; };
-            const pointer data() const { return __I_vimpl.__I_start; };
-
+            pointer data() noexcept { return __I_vimpl.__I_start; };
+            const pointer data() const noexcept { return __I_vimpl.__I_start; };
 
             bool empty() const noexcept { return __I_vimpl.__I_start == __I_vimpl.__I_finish; };
-
-            
+          
             size_type max_size() const { return __max_seq_size(get_allocator()); };
-
-            
+        
             void reserve(size_type);
+
+            void shrink_to_fit();
     };
 
 
@@ -324,10 +307,10 @@ namespace vstl
      * @param __alloc optional allocator argument
      */
     template <typename _Tp, typename _Alloc>
-    vector<_Tp, _Alloc>::vector(size_type __sz, const _Alloc& __alloc)
-        : _Base(__check_seq_size(__sz, __alloc), __alloc)
+    vector<_Tp, _Alloc>::vector(size_type __sz)
+        : _Base(__check_seq_size(__sz, _M_get_allocator()), _M_get_allocator())
     {
-        __I_vimpl.__I_finish = __init_with_default_value_a(__I_vimpl.__I_start, __sz, __alloc);
+        __I_vimpl.__I_finish = __init_with_default_value_a(__I_vimpl.__I_start, __sz, _M_get_allocator());
     };
 
 
@@ -471,7 +454,7 @@ namespace vstl
 
         if(__free_sz > __sz)
         {
-            __copy_or_move_with_range_a(_ri(__I_vimpl.__I_finish + __sz), _cri(__I_vimpl.__I_finish), __to_move, _M_get_allocator());
+            __copy_or_move_with_range_a(_ri(__I_vimpl.__I_finish + __sz), _ri(__I_vimpl.__I_finish), __to_move, _M_get_allocator());
             __init_with_value_a(__I_vimpl.__I_start + __start_offset, __sz, __val, _M_get_allocator());
             __I_vimpl.__I_finish += __sz;
         }
@@ -496,7 +479,7 @@ namespace vstl
             __new_storage.__I_vimpl.__I_finish = __init_with_value_a(__new_storage.__I_vimpl.__I_start + __start_offset, 
                 __sz, __val, _M_get_allocator());
             
-            __new_storage.__I_vimpl.__I_finish = __copy_ormove_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + __sz, 
+            __new_storage.__I_vimpl.__I_finish = __copy_or_move_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + __sz, 
                 __iter.base(), __to_move, _M_get_allocator());
             
             this->__I_vimpl._M_nothrow_swap_data(__new_storage.__I_vimpl);
@@ -775,6 +758,22 @@ namespace vstl
         
         _M_reallocate(__new_size);
     };  
+
+
+
+
+    /**
+     * @brief Reduces an unused capacity 
+     */
+    template <typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::shrink_to_fit()
+    {
+        if(size() == 0)
+            return;
+        
+        vector __temp(begin(), end());
+        *this = vstl::move(__temp);
+    };
 
 
 
