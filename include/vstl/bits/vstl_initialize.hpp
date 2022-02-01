@@ -131,7 +131,7 @@ namespace vstl
         inline static _Tp& __copy_caller(_Tp& __lhs)
         { return __lhs; };
 
-        inline static _Tp __move_caller(_Tp& __rhs)
+        inline static _Tp&& __move_caller(_Tp& __rhs)
         { return vstl::move(__rhs); };
 
         template <typename _Up = _Tp, typename = vstl::enable_if_t<vstl::is_copy_constructible<_Up>::value &&
@@ -141,7 +141,7 @@ namespace vstl
 
         template <typename _Up = _Tp, typename = vstl::enable_if_t<vstl::is_move_constructible<_Up>::value, int>>
         inline static auto __call_copy_or_move(_Up& __val) -> decltype(__move_caller(__val))
-        { return __move_caller(__val); };
+        { return vstl::move(__val); };
     };
 
 
