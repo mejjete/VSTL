@@ -32,10 +32,8 @@ namespace vstl
      *  Exception handling intentionally ignored for performance reason
     */
     template <typename _FwdIter, typename _Alloc>
-    void _Destroy_a(_FwdIter __fiter, _FwdIter __biter, _Alloc& __alloc)
+    inline void _Destroy_a(_FwdIter __fiter, _FwdIter __biter, _Alloc& __alloc)
     {
-        typedef typename vstl::iterator_traits<_FwdIter>::value_type __valtype;
-
         for(; __fiter != __biter; ++__fiter)
             _Destroy_a(vstl::addressof(*__fiter), __alloc);    
     };

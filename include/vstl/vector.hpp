@@ -620,6 +620,7 @@ namespace vstl
     };
 
 
+
     /**
      * @brief Assigns new values from the range [__fiter, __biter)
      * 
@@ -737,7 +738,7 @@ namespace vstl
     inline typename vector<_Tp, _Alloc>::const_reference vector<_Tp, _Alloc>::at(size_type __pos) const
     {
         if(__pos >= this->size())
-            throw std::out_of_range("vstl::vector::at() : not a valid offset");
+            throw std::out_of_range("vstl::vector::at : not a valid offset");
         return *(__I_vimpl.__I_start + __pos);
     };
 
@@ -761,18 +762,18 @@ namespace vstl
 
 
 
-
     /**
      * @brief Reduces an unused capacity 
      */
     template <typename _Tp, typename _Alloc>
     void vector<_Tp, _Alloc>::shrink_to_fit()
     {
-        if(size() == 0)
+        size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_finish;
+
+        if(__free_sz == 0)
             return;
         
-        vector __temp(begin(), end());
-        *this = vstl::move(__temp);
+        _M_reallocate(size());
     };
 
 
@@ -782,7 +783,7 @@ namespace vstl
      * 
      * Allocates new space and copy-constructs old elements
      * It's not part of the vector class since the vector itself does not 
-     * participate in memory management
+     * participate in memory management.
      * 
      * As a side-effect, it invalidates all iterators
      */
@@ -793,34 +794,49 @@ namespace vstl
         _A_pointer __old_end = __I_vimpl.__I_end;
         const _A_size_type __old_size = __old_end - __old_start;
 
+        // return if no reallocation required
+        if(__old_size == __request_size)
+            return;
+
         _A_size_type __new_size = __check_seq_size(__request_size, _M_get_allocator());
 
+        /**
+         * If requested size is less than old size, then we want to partially
+         * 'copy or move' old elements, elements beyond the new size will be destructed.
+         * For example, it might be convenient when calling shrink_to_fit function
+         */
         if(__new_size == 0)
         {
             if(__old_size == 0)
                 __new_size = __DEF_VSTL_VECTOR_SIZE;
             else 
                 __new_size = __check_seq_size(((__old_size * 3) / 2), _M_get_allocator());
-        }        
+        }
+        
+        _A_size_type __to_move;
 
-        _A_pointer __new_start = _M_allocate(__new_size);
-        _A_pointer __new_finish = __new_start;
-        _A_pointer __new_end = __new_start + __new_size;
+        if(__new_size > __old_size)
+            __to_move = __old_size;
+        else 
+            __to_move = __new_size;
 
+        // creates new storage
+        _Vector_Base __vbase(__new_size, _M_get_allocator());
+        
         try 
         {  
             /* move constructs old elements */
-            __new_finish = __copy_or_move_with_range_a(__new_start, __old_start, __old_size, _M_get_allocator());
+            __vbase.__I_vimpl.__I_finish = __copy_or_move_with_range_a(__vbase.__I_vimpl.__I_start, __old_start, __to_move, _M_get_allocator());
         }
         catch(...)
         {
-            _M_deallocate(__new_start, __new_finish - __new_start);
+            _M_deallocate(__vbase.__I_vimpl.__I_start, __vbase.__I_vimpl.__I_finish - __vbase.__I_vimpl.__I_start);
             throw;
         }
 
-        __I_vimpl.__I_start = __new_start;
-        __I_vimpl.__I_finish = __new_finish;
-        __I_vimpl.__I_end = __new_end;
+        // swap current and new _Vector_Base to destruct old elements
+        this->__I_vimpl._M_nothrow_swap_data(__vbase.__I_vimpl);
+        _Destroy_a(__vbase.__I_vimpl.__I_start, __vbase.__I_vimpl.__I_finish, _M_get_allocator());
     };
 }
 #endif
