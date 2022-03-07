@@ -454,7 +454,7 @@ namespace vstl
 
         if(__free_sz > __sz)
         {
-            __copy_or_move_with_range_a(_ri(__I_vimpl.__I_finish + __sz), _ri(__I_vimpl.__I_finish), __to_move, _M_get_allocator());
+            __nothrow_move_or_copy_with_range_a(_ri(__I_vimpl.__I_finish + __sz), _ri(__I_vimpl.__I_finish), __to_move, _M_get_allocator());
             __init_with_value_a(__I_vimpl.__I_start + __start_offset, __sz, __val, _M_get_allocator());
             __I_vimpl.__I_finish += __sz;
         }
@@ -473,13 +473,13 @@ namespace vstl
             size_type __try_capacity = (this->capacity() * 3) / 2; 
             _Base __new_storage(__try_capacity < __sz ? __sz : __try_capacity, _M_get_allocator());
 
-            __new_storage.__I_vimpl.__I_finish = __copy_or_move_with_range_a(__new_storage.__I_vimpl.__I_start, 
+            __new_storage.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__new_storage.__I_vimpl.__I_start, 
                 __I_vimpl.__I_start, __start_offset, _M_get_allocator());
             
             __new_storage.__I_vimpl.__I_finish = __init_with_value_a(__new_storage.__I_vimpl.__I_start + __start_offset, 
                 __sz, __val, _M_get_allocator());
             
-            __new_storage.__I_vimpl.__I_finish = __copy_or_move_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + __sz, 
+            __new_storage.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + __sz, 
                 __iter.base(), __to_move, _M_get_allocator());
             
             this->__I_vimpl._M_nothrow_swap_data(__new_storage.__I_vimpl);
@@ -738,7 +738,7 @@ namespace vstl
     inline typename vector<_Tp, _Alloc>::const_reference vector<_Tp, _Alloc>::at(size_type __pos) const
     {
         if(__pos >= this->size())
-            throw std::out_of_range("vstl::vector::at : not a valid offset");
+            throw std::out_of_range("vstl::vector::at - not a valid offset");
         return *(__I_vimpl.__I_start + __pos);
     };
 
@@ -826,7 +826,7 @@ namespace vstl
         try 
         {  
             /* move constructs old elements */
-            __vbase.__I_vimpl.__I_finish = __copy_or_move_with_range_a(__vbase.__I_vimpl.__I_start, __old_start, __to_move, _M_get_allocator());
+            __vbase.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__vbase.__I_vimpl.__I_start, __old_start, __to_move, _M_get_allocator());
         }
         catch(...)
         {
