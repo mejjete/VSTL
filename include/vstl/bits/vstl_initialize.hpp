@@ -141,7 +141,7 @@ namespace vstl
     
     /**
      * Aux structure for calling move constructor if move is noexcept, and 
-     * copy otherwise. 
+     * copy otherwise
      */
     template <typename _Tp>
     struct __nothrow_move_or_copy_caller 
@@ -182,7 +182,7 @@ namespace vstl
 
 
     /**
-     *  Nothrow move or copy range from 
+     *  Nothrow move or copy range started with __siter to range started with __fiter
     */
     template <typename _FirstIter, typename _SecIter, typename _Size, typename _Alloc>
     _FirstIter __nothrow_move_or_copy_with_range_a(_FirstIter __fiter, _SecIter __siter, _Size __n, _Alloc& __alloc)

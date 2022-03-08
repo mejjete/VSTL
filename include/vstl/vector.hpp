@@ -222,7 +222,8 @@ namespace vstl
             vector() = default;
             ~vector();
 
-            explicit vector(size_type);
+            explicit vector(const _Alloc&);
+            explicit vector(size_type, const _Alloc& __alloc = _Alloc());
             vector(size_type, const _Tp&, const _Alloc& __alloc = _Alloc());
 
             vector(const vector& vect);
@@ -278,7 +279,7 @@ namespace vstl
             const_reference at(size_type) const;
 
             reference operator[](size_type __pos) { return *(__I_vimpl.__I_start + __pos); };
-            const_reference operator[](size_type __pos) const  { return const_cast<reference>(const_cast<const vector&>(*this).operator[](__pos)); };
+            const_reference operator[](size_type __pos) const  { return const_cast<const_reference>(const_cast<const vector&>(*this).operator[](__pos)); };
 
             reference front() noexcept { return *__I_vimpl.__I_start; };
             const_reference front() const noexcept { return *__I_vimpl.__I_start; };
@@ -301,14 +302,25 @@ namespace vstl
 
 
     /**
-     * @brief Default constructs vector with __sz elements
+     * @brief Constructs a vector with allocator parameter
      * 
-     * @param __sz count of elements to be default constructed 
-     * @param __alloc optional allocator argument
+     * @param __alloc - allocator 
      */
     template <typename _Tp, typename _Alloc>
-    vector<_Tp, _Alloc>::vector(size_type __sz)
-        : _Base(__check_seq_size(__sz, _M_get_allocator()), _M_get_allocator())
+    vector<_Tp, _Alloc>::vector(const _Alloc& __alloc)
+        : _Base(_M_get_allocator()) {};
+    
+
+
+    /**
+     * @brief Default constructs a vector with given size
+     * 
+     * @param __sz - vector size
+     * @param __alloc - optional allocator parameter
+     */
+    template <typename _Tp, typename _Alloc>
+    vector<_Tp, _Alloc>::vector(size_type __sz, const _Alloc& __alloc)
+        : _Base(__check_seq_size(__sz, __alloc), __alloc) 
     {
         __I_vimpl.__I_finish = __init_with_default_value_a(__I_vimpl.__I_start, __sz, _M_get_allocator());
     };
@@ -325,7 +337,7 @@ namespace vstl
     vector<_Tp, _Alloc>::vector(const vector& __vect)
         : _Base(__vect.capacity(), __vect._M_get_allocator())
     {
-        __I_vimpl.__I_finish = __init_with_range_a(__I_vimpl.__I_start, __vect.cbegin(), __vect.capacity(), _M_get_allocator());
+        __I_vimpl.__I_finish = __init_with_range_a(__I_vimpl.__I_start, __vect.cbegin(), __vect.size(), _M_get_allocator());
     };
 
 
@@ -738,7 +750,7 @@ namespace vstl
     inline typename vector<_Tp, _Alloc>::const_reference vector<_Tp, _Alloc>::at(size_type __pos) const
     {
         if(__pos >= this->size())
-            throw std::out_of_range("vstl::vector::at - not a valid offset");
+            throw std::out_of_range("vstl::vector::at - invalid offset");
         return *(__I_vimpl.__I_start + __pos);
     };
 
@@ -825,7 +837,7 @@ namespace vstl
         
         try 
         {  
-            /* move constructs old elements */
+            // move constructs old elements
             __vbase.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__vbase.__I_vimpl.__I_start, __old_start, __to_move, _M_get_allocator());
         }
         catch(...)
