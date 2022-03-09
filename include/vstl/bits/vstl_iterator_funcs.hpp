@@ -11,6 +11,8 @@ namespace vstl
     template <typename _Iter>
     using __iter_diff_t = typename vstl::iterator_traits<_Iter>::difference_type;
 
+    template <typename _Iter>
+    using __iter_value_t = typename vstl::iterator_traits<_Iter>::value_type;
 
 
     template <typename _Iter>
@@ -18,7 +20,6 @@ namespace vstl
     {
         return __pos2 - __pos1;
     };
-
 
 
     template <typename _Iter>

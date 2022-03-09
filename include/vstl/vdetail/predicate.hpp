@@ -1,8 +1,9 @@
-#ifndef VSTL_PREDICATE
-    #define VSTL_PREDICATE
+#ifndef VSTL_PREDICATE_H
+#define VSTL_PREDICATE_H
 
 
 #include <vstl/iterator.hpp>
+#include <vstl/vdetail/interface.hpp>
 
 
 namespace vstl
@@ -60,6 +61,12 @@ namespace vstl
     struct less : public binary_function<T, T, bool>
     {
         bool operator()(const T& arg1, const T& arg2) const { return arg1 < arg2; };
+    };
+
+    template <typename _Tp, typename _Up>
+    struct __less_aux : public binary_function<_Tp, _Up, bool>
+    {
+        bool operator()(const _Tp& arg1, const _Up& arg2) const { return arg1 < arg2; };
     };
 
     template <typename T>

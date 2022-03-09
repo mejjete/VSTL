@@ -87,5 +87,12 @@ namespace vstl
     template <typename _Iterator>
     using _RequireInputIter = enable_if_t<is_convertible<__iter_category_t<_Iterator>, 
         vstl::input_iterator_tag>::value>;
+    
+    /**
+     * Evaluates to well-formed expression if _Iterator is convertible to _RequiredIter
+     */
+    template <typename _Iterator, typename _RequiredIter>
+    using _RequireIter = enable_if_t<is_convertible<__iter_category_t<_Iterator>, 
+        _RequiredIter>::value>;
 }
 #endif

@@ -3,17 +3,11 @@
 
 
 #include <vstl/iterator.hpp>
+#include <vstl/bits/vstl_primary_algo.hpp>
 
 
 namespace vstl
 {
-    template <typename _Tp, typename _Up>
-    struct __greater_type
-    {
-        typedef vstl::conditional_t<(sizeof(_Tp) > sizeof(_Up)), _Tp, _Up> type;
-    };
-
-
     template <typename ForwardIterator>
     ForwardIterator min_element(ForwardIterator first, ForwardIterator last)
     {
@@ -33,24 +27,6 @@ namespace vstl
                 minIt = i;
         return minIt;
     };
-
-    template <typename T>
-    const T& min(const T& a, const T& b) { return a < b ? a : b; };
-
-
-    template <typename _Tp, typename _Up>
-    const typename __greater_type<_Tp, _Up>::type __aux_min(const _Tp& __a, const _Up& __b) 
-    { return __a < __b ? __a : __b; };
-
-
-    template <typename T, typename Compare>
-    const T& min(const T& a, const T& b, Compare comp) { return comp(a, b) ? a : b; };
-
-    template <typename T>
-    T min(std::initializer_list<T> ilist) { return *min_element(ilist.begin(), ilist.end()); };
-
-    template <typename T, typename Compare>
-    T min(std::initializer_list<T> ilist, Compare comp) { return *min_element(ilist.begin(), ilist.end(), comp); }; 
 
     template <typename ForwardIterator>
     ForwardIterator max_element(ForwardIterator first, ForwardIterator last)
