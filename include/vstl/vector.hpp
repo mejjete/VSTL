@@ -279,7 +279,7 @@ namespace vstl
             const_reference at(size_type) const;
 
             reference operator[](size_type __pos) { return *(__I_vimpl.__I_start + __pos); };
-            const_reference operator[](size_type __pos) const  { return const_cast<const_reference>(const_cast<const vector&>(*this).operator[](__pos)); };
+            const_reference operator[](size_type __pos) const { return const_cast<const_reference>(const_cast<const vector&>(*this).operator[](__pos)); };
 
             reference front() noexcept { return *__I_vimpl.__I_start; };
             const_reference front() const noexcept { return *__I_vimpl.__I_start; };
@@ -292,11 +292,18 @@ namespace vstl
 
             bool empty() const noexcept { return __I_vimpl.__I_start == __I_vimpl.__I_finish; };
           
-            size_type max_size() const { return __max_seq_size(get_allocator()); };
-        
+            size_type max_size() const noexcept { return __max_seq_size(get_allocator()); };
+
             void reserve(size_type);
 
             void shrink_to_fit();
+
+            void clear() noexcept;
+
+            void erase(const_iterator, const_iterator);
+            void erase(const_iterator);
+
+            void swap(vector& other) { other.__I_vimpl._M_nothrow_swap_data(this->__I_vimpl); };
     };
 
 
@@ -790,14 +797,57 @@ namespace vstl
 
 
 
+    /**
+     * @brief Clears whole vector
+     */
+    template <typename _Tp, typename _Alloc>
+    inline void vector<_Tp, _Alloc>::clear() noexcept
+    {
+        _Destroy_a(this->begin(), this->end(), this->get_allocator());
+    };
+
+
+
+    /**
+     * @brief Erases range from vector
+     * 
+     * @param __fiter start of range
+     * @param __biter end of range
+     */
+    template <typename _Tp, typename _Alloc>
+    inline void vector<_Tp, _Alloc>::erase(const_iterator __fiter, const_iterator __biter)
+    {        
+        iterator __start = begin() + (__fiter - cbegin());
+        iterator __end = begin() + (__fiter - cbegin()) + (__biter - __fiter);
+        _Destroy_a(__start, __end, _M_get_allocator());
+        __nothrow_move_or_copy_with_range_a(__start, __end, end() - __biter, _M_get_allocator());
+        __I_vimpl.__I_finish -= __biter - __fiter;
+    };
+
+
+
+    /**
+     * @brief Erases one element from vector
+     * 
+     * @param __iter element to be erased 
+     */
+    template <typename _Tp, typename _Alloc>
+    inline void vector<_Tp, _Alloc>::erase(const_iterator __iter)
+    {        
+        if(__iter == end())
+            return;
+        erase(__iter, next(__iter));
+    };
+
+
+
     /** 
-     * Do basic reallocation
+     * Responsible for all memory management in vector class, in particular:
+     * if request size == 0, reallocates memory according to the incore vector algorithm
+     * if request size > 0, reallocates request size bytes. In case when request size less than current 
+     * vector size, the elements beyond the new size is forcibly destroyed
      * 
-     * Allocates new space and copy-constructs old elements
-     * It's not part of the vector class since the vector itself does not 
-     * participate in memory management.
-     * 
-     * As a side-effect, it invalidates all iterators
+     * As a side-effect, it might invalidate all iterators
      */
     template <typename _Tp, typename _Alloc>
     void _Vector_Base<_Tp, _Alloc>::_M_reallocate(_A_size_type __request_size)
@@ -807,7 +857,7 @@ namespace vstl
         const _A_size_type __old_size = __old_end - __old_start;
 
         // return if no reallocation required
-        if(__old_size == __request_size)
+        if(__old_size == __request_size && __request_size != 0)
             return;
 
         _A_size_type __new_size = __check_seq_size(__request_size, _M_get_allocator());
@@ -850,5 +900,48 @@ namespace vstl
         this->__I_vimpl._M_nothrow_swap_data(__vbase.__I_vimpl);
         _Destroy_a(__vbase.__I_vimpl.__I_start, __vbase.__I_vimpl.__I_finish, _M_get_allocator());
     };
+
+
+
+    template <typename _Tp, typename _Alloc>
+    inline bool operator==(const vector<_Tp, _Alloc>& __v1, const vector<_Tp, _Alloc>& __v2)
+    { 
+        return (__v1.size() == __v2.size() && vstl::equal(__v1.cbegin(), __v1.cend(), __v2.cbegin()));
+    };
+
+
+    template <typename _Tp, typename _Alloc>
+    inline bool operator!=(const vector<_Tp, _Alloc>& __v1, const vector<_Tp, _Alloc>& __v2)
+    { 
+        return !(__v1 == __v2);
+    };
+
+    template <typename _Tp, typename _Alloc>
+    inline bool operator<(const vector<_Tp, _Alloc>& __v1, const vector<_Tp, _Alloc>& __v2)
+    { 
+        return vstl::lexicographical_compare(__v1.cbegin(), __v1.cend(), __v2.cbegin(), __v2.cend());
+    };
+
+
+    template <typename _Tp, typename _Alloc>
+    inline bool operator>(const vector<_Tp, _Alloc>& __v1, const vector<_Tp, _Alloc>& __v2)
+    { 
+        return __v2 < __v1;
+    };
+
+
+    template <typename _Tp, typename _Alloc>
+    inline bool operator<=(const vector<_Tp, _Alloc>& __v1, const vector<_Tp, _Alloc>& __v2)
+    { 
+        return !(__v1 > __v2);
+    };
+
+
+    template <typename _Tp, typename _Alloc>
+    inline bool operator>=(const vector<_Tp, _Alloc>& __v1, const vector<_Tp, _Alloc>& __v2)
+    { 
+        return !(__v1 < __v2);
+    };
+
 }
 #endif
