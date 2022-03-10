@@ -156,7 +156,10 @@ namespace vstl
                 __I_vimpl.deallocate(__p, __n);
         };
 
-        void _M_reallocate(_A_size_type __request_size = _A_size_type());
+        void _M_increase_space(_A_size_type __mntsize = _A_size_type());
+        void _M_decrease_space(_A_size_type);
+
+        const _A_size_type _M_size() const noexcept { return __I_vimpl.__I_finish - __I_vimpl.__I_start; };
     };
 
 
@@ -211,13 +214,13 @@ namespace vstl
             typedef ptrdiff_t                                               difference_type;
             typedef _Alloc                                                  allocator_type;
 
-
             using _Base::_M_create_storage;
             using _Base::_M_get_allocator;
             using _Base::_M_allocate;
             using _Base::_M_deallocate;
             using _Base::__I_vimpl;
-            using _Base::_M_reallocate;
+            using _Base::_M_increase_space;
+            using _Base::_M_decrease_space;
 
             vector() = default;
             ~vector();
@@ -426,7 +429,7 @@ namespace vstl
             __I_vimpl.__I_finish = __init_with_value_a(__I_vimpl.__I_finish, 1, __lhs, _M_get_allocator());
         else 
         {
-            _M_reallocate();
+            _M_increase_space();
             push_back(__lhs);
         }
     };
@@ -446,7 +449,7 @@ namespace vstl
             __I_vimpl.__I_finish = __init_with_value_a(__I_vimpl.__I_finish, 1, vstl::move(__rhs), _M_get_allocator());
         else 
         {
-            _M_reallocate();
+            _M_increase_space();
             push_back(vstl::move(__rhs));
         }
     };
@@ -779,7 +782,7 @@ namespace vstl
         if(__new_size >= max_size())
             throw std::length_error("vstl::vector::reserve - invalid vector size");
         
-        _M_reallocate(__new_size);
+        _M_increase_space(__new_size);
     };  
 
 
@@ -795,7 +798,7 @@ namespace vstl
         if(__free_sz == 0)
             return;
         
-        _M_reallocate(size());
+        _M_decrease_space(size());
     };
 
 
@@ -844,33 +847,30 @@ namespace vstl
 
 
 
-    /** 
-     * Responsible for all memory management in vector class, in particular:
-     * if request size == 0, reallocates memory according to the incore vector algorithm,
-     * if request size > 0, reallocates request size bytes. In case when request size less than current 
-     * vector size, the elements beyond the new size is forcibly destroyed,
-     * if request size > current size, reallocates request size
+    /*
+     * Increases memory used by the vector corresponding to following algorithm:
+     * if __memcnt == 0, reallocates memory according to the incore vector algorithm,
+     * if __memcnt > current size, reallocates __memcnt memory and copy/move old elements,
+     * if __memcnt <= current size, do nothing 
      * 
-     * As a side-effect, it might invalidate all iterators
+     * Provides strong exception guarantee 
      */
     template <typename _Tp, typename _Alloc>
-    void _Vector_Base<_Tp, _Alloc>::_M_reallocate(_A_size_type __request_size)
+    void _Vector_Base<_Tp, _Alloc>::_M_increase_space(_A_size_type __memcnt)
     {
+        if(__memcnt <= _M_size() && __memcnt != 0)
+            return;
+
         _A_pointer __old_start = __I_vimpl.__I_start;
         _A_pointer __old_end = __I_vimpl.__I_end;
         const _A_size_type __old_size = __old_end - __old_start;
 
         // return if no reallocation required
-        if(__old_size == __request_size && __request_size != 0)
+        if(__old_size == __memcnt && __memcnt != 0)
             return;
 
-        _A_size_type __new_size = __check_seq_size(__request_size, _M_get_allocator());
-
-        /**
-         * If requested size is less than old size, then we want to partially
-         * 'copy or move' old elements, elements beyond the new size will be destructed.
-         * For example, it might be convenient when calling shrink_to_fit function
-         */
+        _A_size_type __new_size = __check_seq_size(__memcnt, _M_get_allocator());
+        
         if(__new_size == 0)
         {
             if(__old_size == 0)
@@ -878,28 +878,38 @@ namespace vstl
             else 
                 __new_size = __check_seq_size(((__old_size * 3) / 2), _M_get_allocator());
         }
-        
-        _A_size_type __to_move;
-
-        if(__new_size > __old_size)
-            __to_move = __old_size;
-        else 
-            __to_move = __new_size;
 
         // creates new storage
         _Vector_Base __vbase(__new_size, _M_get_allocator());
         
-        try 
-        {  
-            // move constructs old elements
-            __vbase.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__vbase.__I_vimpl.__I_start, __old_start, __to_move, _M_get_allocator());
-        }
-        catch(...)
-        {
-            _M_deallocate(__vbase.__I_vimpl.__I_start, __vbase.__I_vimpl.__I_finish - __vbase.__I_vimpl.__I_start);
-            throw;
-        }
+        __vbase.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__vbase.__I_vimpl.__I_start, 
+            __old_start, __old_size, _M_get_allocator());
+        
+        // swap current and new _Vector_Base to destruct old elements
+        this->__I_vimpl._M_nothrow_swap_data(__vbase.__I_vimpl);
+        _Destroy_a(__vbase.__I_vimpl.__I_start, __vbase.__I_vimpl.__I_finish, _M_get_allocator());
+    };
 
+
+
+    /**
+     * Reduces memory used by the vector. The elements beyond the new size 
+     * (e.g __memcnt) is forcibly destroyed.
+     * 
+     * Provides basic exception guarantee
+     */
+    template <typename _Tp, typename _Alloc>
+    void _Vector_Base<_Tp, _Alloc>::_M_decrease_space(_A_size_type __memcnt)
+    {
+        _A_size_type __old_size = _M_size();
+        if(__memcnt >= __old_size)
+            return;
+        
+        _Vector_Base __vbase(__memcnt, _M_get_allocator());
+
+        __vbase.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__vbase.__I_vimpl.__I_start, 
+            __I_vimpl.__I_start, __memcnt, _M_get_allocator());
+        
         // swap current and new _Vector_Base to destruct old elements
         this->__I_vimpl._M_nothrow_swap_data(__vbase.__I_vimpl);
         _Destroy_a(__vbase.__I_vimpl.__I_start, __vbase.__I_vimpl.__I_finish, _M_get_allocator());
@@ -923,7 +933,7 @@ namespace vstl
         if(__count > capacity())
         {
             size_type __old_size = size();
-            _M_reallocate(__count);
+            _M_increase_space(__count);
             size_type __to_construct = capacity() - __old_size;
             __I_vimpl.__I_finish = __init_with_value_a(__I_vimpl.__I_finish, __to_construct, __val, _M_get_allocator());
         }
