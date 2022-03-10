@@ -961,7 +961,7 @@ namespace vstl
         else 
         {
             _Destroy_a(rbegin() + __count, rbegin(), _M_get_allocator());
-            __I_vimpl.__I_finish -= __count;
+            __I_vimpl.__I_finish -= __old_size - __count;
         }
     };
 
@@ -989,7 +989,7 @@ namespace vstl
         else 
         {
             _Destroy_a(rbegin() + __count, rbegin(), _M_get_allocator());
-            __I_vimpl.__I_finish -= __count;
+            __I_vimpl.__I_finish -= __old_size - __count;
         }
     };
 
