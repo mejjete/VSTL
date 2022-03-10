@@ -310,6 +310,9 @@ namespace vstl
 
             void resize(size_type __count);
             void resize(size_type __count, const value_type& __val);
+        
+        private:
+            bool __aux_resize(size_type);
     };
 
 
@@ -918,6 +921,24 @@ namespace vstl
 
 
     /**
+     * Aux function which reallocates new memory if so is required.
+     * Returns true if reallocation has been performed
+     */
+    template <typename _Tp, typename _Alloc>
+    inline bool vector<_Tp, _Alloc>::__aux_resize(size_type __memcnt)
+    {
+        if(__memcnt > capacity())
+        {
+            _M_increase_space(__memcnt);
+            return true;
+        }
+        
+        return false;
+    };
+
+
+
+    /**
      * @brief Resizes the vector to __count elements
      * If __count is greater than current size, rest elements
      * will be copy constructed with __val
@@ -930,14 +951,14 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     void vector<_Tp, _Alloc>::resize(size_type __count, const value_type& __val)
     {
-        if(__count > capacity())
+        size_type __old_size = size();
+
+        if(__aux_resize(__count))   // reallocation has been performed if resize() need more memory
         {
-            size_type __old_size = size();
-            _M_increase_space(__count);
             size_type __to_construct = capacity() - __old_size;
             __I_vimpl.__I_finish = __init_with_value_a(__I_vimpl.__I_finish, __to_construct, __val, _M_get_allocator());
         }
-        else if(__count < capacity())
+        else 
         {
             _Destroy_a(rbegin() + __count, rbegin(), _M_get_allocator());
             __I_vimpl.__I_finish -= __count;
@@ -948,14 +969,29 @@ namespace vstl
 
     /**
      * @brief Resizes the vector to __count elements
-     * If __count is greater than current size, rest elements
-     * will be default constructed (if needed)
+     * If __count is greater than current size, rest elements will be 
+     * default constructed (if needed)
      * 
-     * @param __count vector capacity to resize 
+     * @param __count resize request
      */
     template <typename _Tp, typename _Alloc>
-    inline void vector<_Tp, _Alloc>::resize(size_type __count)
-    { resize(__count, value_type()); };
+    void vector<_Tp, _Alloc>::resize(size_type __count)
+    { 
+        size_type __old_size = size();
+
+        if(__aux_resize(__count))   // reallocation has been performed if resize() need more memory
+        {
+            size_type __to_construct = capacity() - __old_size;
+
+            // default in-place construct new elements
+            __I_vimpl.__I_finish = __emplace_with_value_a(__I_vimpl.__I_finish, __to_construct, _M_get_allocator());
+        }
+        else 
+        {
+            _Destroy_a(rbegin() + __count, rbegin(), _M_get_allocator());
+            __I_vimpl.__I_finish -= __count;
+        }
+    };
 
 
 

@@ -119,6 +119,29 @@ namespace vstl
         return __cur;
     };
 
+
+    /**
+     * Direcly construct __n elements in range started with __fiter
+     */
+    template <typename _FirstIter, typename _Size, typename _Alloc, typename... _Args>
+    _FirstIter __emplace_with_value_a(_FirstIter __fiter, _Size __n, _Alloc& __alloc, _Args&&... __args)
+    {
+        _FirstIter __cur = __fiter;
+
+        try 
+        {
+            for(; __n > 0; --__n, ++__cur)
+                __alloc.construct(vstl::addressof(*__cur), vstl::forward<_Args>(__args)...);
+        }
+        catch(...)
+        {
+            vstl::_Destroy_a(__fiter, __cur, __alloc);
+            throw;
+        }
+
+        return __cur;
+    };
+
     
     /**
      * Aux structure for calling move or copy constructor depending 
