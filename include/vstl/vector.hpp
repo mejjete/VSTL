@@ -304,6 +304,9 @@ namespace vstl
             void erase(const_iterator);
 
             void swap(vector& other) { other.__I_vimpl._M_nothrow_swap_data(this->__I_vimpl); };
+
+            void resize(size_type __count);
+            void resize(size_type __count, const value_type& __val);
     };
 
 
@@ -803,7 +806,7 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     inline void vector<_Tp, _Alloc>::clear() noexcept
     {
-        _Destroy_a(this->begin(), this->end(), this->get_allocator());
+        _Destroy_a(this->begin(), this->end(), _M_get_allocator());
     };
 
 
@@ -843,9 +846,10 @@ namespace vstl
 
     /** 
      * Responsible for all memory management in vector class, in particular:
-     * if request size == 0, reallocates memory according to the incore vector algorithm
+     * if request size == 0, reallocates memory according to the incore vector algorithm,
      * if request size > 0, reallocates request size bytes. In case when request size less than current 
-     * vector size, the elements beyond the new size is forcibly destroyed
+     * vector size, the elements beyond the new size is forcibly destroyed,
+     * if request size > current size, reallocates request size
      * 
      * As a side-effect, it might invalidate all iterators
      */
@@ -903,6 +907,48 @@ namespace vstl
 
 
 
+    /**
+     * @brief Resizes the vector to __count elements
+     * If __count is greater than current size, rest elements
+     * will be copy constructed with __val
+     * If __count is less than current size, elements beyond the new capacity
+     * will be destroyed
+     * 
+     * @param __count vector capacity to resize
+     * @param __val additional values to be appended (if needed)
+     */
+    template <typename _Tp, typename _Alloc>
+    void vector<_Tp, _Alloc>::resize(size_type __count, const value_type& __val)
+    {
+        if(__count > capacity())
+        {
+            size_type __old_size = size();
+            _M_reallocate(__count);
+            size_type __to_construct = capacity() - __old_size;
+            __I_vimpl.__I_finish = __init_with_value_a(__I_vimpl.__I_finish, __to_construct, __val, _M_get_allocator());
+        }
+        else if(__count < capacity())
+        {
+            _Destroy_a(rbegin() + __count, rbegin(), _M_get_allocator());
+            __I_vimpl.__I_finish -= __count;
+        }
+    };
+
+
+
+    /**
+     * @brief Resizes the vector to __count elements
+     * If __count is greater than current size, rest elements
+     * will be default constructed (if needed)
+     * 
+     * @param __count vector capacity to resize 
+     */
+    template <typename _Tp, typename _Alloc>
+    inline void vector<_Tp, _Alloc>::resize(size_type __count)
+    { resize(__count, value_type()); };
+
+
+
     template <typename _Tp, typename _Alloc>
     inline bool operator==(const vector<_Tp, _Alloc>& __v1, const vector<_Tp, _Alloc>& __v2)
     { 
@@ -915,6 +961,7 @@ namespace vstl
     { 
         return !(__v1 == __v2);
     };
+
 
     template <typename _Tp, typename _Alloc>
     inline bool operator<(const vector<_Tp, _Alloc>& __v1, const vector<_Tp, _Alloc>& __v2)
@@ -942,6 +989,5 @@ namespace vstl
     { 
         return !(__v1 < __v2);
     };
-
 }
 #endif
