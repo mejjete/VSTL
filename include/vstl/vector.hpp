@@ -287,8 +287,8 @@ namespace vstl
             reference front() noexcept { return *__I_vimpl.__I_start; };
             const_reference front() const noexcept { return *__I_vimpl.__I_start; };
 
-            reference back() noexcept { return --(*__I_vimpl.__I_finish); };
-            const_reference back() const noexcept { return --(*__I_vimpl.__I_finish); };
+            reference back() noexcept { return *(__I_vimpl.__I_finish - 1); };
+            const_reference back() const noexcept { return *(__I_vimpl.__I_finish - 1); };
 
             pointer data() noexcept { return __I_vimpl.__I_start; };
             const pointer data() const noexcept { return __I_vimpl.__I_start; };
@@ -320,7 +320,7 @@ namespace vstl
     /**
      * @brief Constructs a vector with allocator parameter
      * 
-     * @param __alloc - allocator 
+     * @param __alloc allocator 
      */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::vector(const _Alloc& __alloc)
@@ -331,8 +331,8 @@ namespace vstl
     /**
      * @brief Default constructs a vector with given size
      * 
-     * @param __sz - vector size
-     * @param __alloc - optional allocator parameter
+     * @param __sz vector size
+     * @param __alloc optional allocator parameter
      */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::vector(size_type __sz, const _Alloc& __alloc)
@@ -699,11 +699,14 @@ namespace vstl
      * 
      * @param __vect source vector
      * @return reference to itself
-     * Invalidates all iterators 
+     * Might invalidate all iterators
      */
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>& vector<_Tp, _Alloc>::operator=(const vector& __vect)
     {
+        if(*this == __vect)
+            return *this;
+
         /* Manually destroy current vector values */
         _Destroy_a(__I_vimpl.__I_start, __I_vimpl.__I_finish, _M_get_allocator());
         __I_vimpl.__I_start = __I_vimpl.__I_finish = typename _Base::_A_pointer();
