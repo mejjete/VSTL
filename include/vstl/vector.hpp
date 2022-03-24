@@ -651,18 +651,6 @@ namespace vstl
         }
 
         return __I_vimpl.__I_start + __start_offset + __sz;
-
-        // difference_type __start_offset = __iter - cbegin();
-        // size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_finish;
-
-        // if(__iter == end() && __free_sz > 0)
-        // {
-        //     _M_get_allocator().construct(__I_vimpl.__I_finish, vstl::forward<_Args>(__args)...);
-        //     ++__I_vimpl.__I_finish;
-        //     return __I_vimpl.__I_finish - 1;
-        // }
-
-        // return insert(__iter, value_type(vstl::forward<_Args>(__args)...));
     };
 
 
