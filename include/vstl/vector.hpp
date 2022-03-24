@@ -87,7 +87,7 @@ namespace vstl
             {
                 _Vector_Impl_Data __temp;
                 __temp._M_nothrow_copy_data(*this);
-                this->_M_nothrow_copy_data(__rhs);
+                _M_nothrow_copy_data(__rhs);
                 __rhs._M_nothrow_copy_data(__temp);
             };
         };
@@ -113,7 +113,7 @@ namespace vstl
 
         _Vector_Impl __I_vimpl;
 
-        const _A_alloc_type& _M_get_allocator() const { return this->__I_vimpl; };
+        const _A_alloc_type& _M_get_allocator() const { return __I_vimpl; };
 
         _Vector_Base() = default;
 
@@ -140,9 +140,9 @@ namespace vstl
 
         void _M_create_storage(size_t __n)
         {
-            this->__I_vimpl.__I_start = _M_allocate(__n);
-            this->__I_vimpl.__I_finish = this->__I_vimpl.__I_start;
-            this->__I_vimpl.__I_end = this->__I_vimpl.__I_start + __n;
+            __I_vimpl.__I_start = _M_allocate(__n);
+            __I_vimpl.__I_finish = __I_vimpl.__I_start;
+            __I_vimpl.__I_end = __I_vimpl.__I_start + __n;
         };
 
         _A_pointer _M_allocate(size_t __n)
@@ -306,7 +306,7 @@ namespace vstl
             void erase(const_iterator, const_iterator);
             void erase(const_iterator);
 
-            void swap(vector& other) { other.__I_vimpl._M_nothrow_swap_data(this->__I_vimpl); };
+            void swap(vector& other) { other.__I_vimpl._M_nothrow_swap_data(__I_vimpl); };
 
             void resize(size_type __count);
             void resize(size_type __count, const value_type& __val);
@@ -415,7 +415,7 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     vector<_Tp, _Alloc>::~vector()
     {
-        _Destroy_a(this->__I_vimpl.__I_start, this->__I_vimpl.__I_finish, _M_get_allocator());
+        _Destroy_a(__I_vimpl.__I_start, __I_vimpl.__I_finish, _M_get_allocator());
     };
 
 
@@ -473,7 +473,7 @@ namespace vstl
     typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, size_type __sz, const value_type& __val)
     {   
         // save the iterator 'offset' relative to begin() because insertion might yeild reallocation
-        difference_type __start_offset = __iter - this->cbegin();
+        difference_type __start_offset = __iter - cbegin();
         size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_finish; 
         size_type __to_move = (__I_vimpl.__I_finish - __iter.base());
 
@@ -498,7 +498,7 @@ namespace vstl
              * on an invalid object
              */
 
-            size_type __try_capacity = (this->capacity() * 3) / 2; 
+            size_type __try_capacity = (capacity() * 3) / 2; 
             _Base __new_storage(__try_capacity < __sz ? __sz : __try_capacity, _M_get_allocator());
 
             __new_storage.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__new_storage.__I_vimpl.__I_start, 
@@ -510,7 +510,7 @@ namespace vstl
             __new_storage.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + __sz, 
                 __iter.base(), __to_move, _M_get_allocator());
             
-            this->__I_vimpl._M_nothrow_swap_data(__new_storage.__I_vimpl);
+            __I_vimpl._M_nothrow_swap_data(__new_storage.__I_vimpl);
             
             // now __new_storage is an old pointer, we should null it out to avoid unnecessary destructor call
             _Destroy_a(__new_storage.__I_vimpl.__I_start, __new_storage.__I_vimpl.__I_finish, _M_get_allocator());
@@ -534,7 +534,7 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     inline typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, const value_type& __val)
     {
-        return this->insert(__iter, 1, __val);
+        return insert(__iter, 1, __val);
     };
 
 
@@ -550,7 +550,7 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     inline typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, std::initializer_list<_Tp> __ulist)
     {
-        return this->insert(__iter, __ulist.begin(), __ulist.end());
+        return insert(__iter, __ulist.begin(), __ulist.end());
     };
 
 
@@ -572,7 +572,7 @@ namespace vstl
     typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::insert(iterator __iter, _InputIter __first, _InputIter __last)
     {
         iterator __it;
-        difference_type __iter_offset = __iter - this->begin();
+        difference_type __iter_offset = __iter - begin();
 
         while(__first != __last)
         {
@@ -581,7 +581,7 @@ namespace vstl
              * since each call to insert, potentionally, can cause memory 
              * reallocation and iterator invalidation
              */
-            __it = this->insert(this->begin() + __iter_offset, 1, *__first);
+            __it = insert(begin() + __iter_offset, 1, *__first);
             __iter_offset++;
             __first++;
         }
@@ -604,17 +604,65 @@ namespace vstl
     template <typename... _Args>
     typename vector<_Tp, _Alloc>::iterator vector<_Tp, _Alloc>::emplace(iterator __iter, _Args&&... __args)
     {
-        difference_type __start_offset = __iter - this->cbegin();
-        size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_finish;
+        // save the iterator 'offset' relative to begin() because insertion might yeild reallocation
+        difference_type __start_offset = __iter - cbegin();
+        size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_finish; 
+        size_type __to_move = (__I_vimpl.__I_finish - __iter.base());
+        size_type __sz = 1;
 
-        if(__iter == this->end() && __free_sz > 0)
+        typedef reverse_iterator _ri;
+        typedef const_reverse_iterator _cri;
+
+        if(__free_sz > __sz)
         {
-            _M_get_allocator().construct(__I_vimpl.__I_finish, vstl::forward<_Args>(__args)...);
-            ++__I_vimpl.__I_finish;
-            return __I_vimpl.__I_finish - 1;
+            __nothrow_move_or_copy_with_range_a(_ri(__I_vimpl.__I_finish + __sz), _ri(__I_vimpl.__I_finish), __to_move, _M_get_allocator());
+            __emplace_with_value_a(__I_vimpl.__I_start + __start_offset, __sz, _M_get_allocator(), __args...);
+            __I_vimpl.__I_finish += __sz;
+        }
+        else 
+        {
+            /**
+             * When additional space required, insertion operation takes next steps:
+             * 1. allocate new storage
+             * 2. move old elements in range [start, iter) into newly allocated storage
+             * 3. construct new elements
+             * 4. move remaining elements within the range [iter, finish) into new storage
+             * finish need not be included into final range because it points to the end, thus
+             * on an invalid object
+             */
+
+            size_type __try_capacity = (capacity() * 3) / 2; 
+            _Base __new_storage(__try_capacity < __sz ? __sz : __try_capacity, _M_get_allocator());
+
+            __new_storage.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__new_storage.__I_vimpl.__I_start, 
+                __I_vimpl.__I_start, __start_offset, _M_get_allocator());
+            
+            __new_storage.__I_vimpl.__I_finish = __emplace_with_value_a(__new_storage.__I_vimpl.__I_start + __start_offset, 
+                __sz, _M_get_allocator(), __args...);
+            
+            __new_storage.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__new_storage.__I_vimpl.__I_start + __start_offset + __sz, 
+                __iter.base(), __to_move, _M_get_allocator());
+            
+            __I_vimpl._M_nothrow_swap_data(__new_storage.__I_vimpl);
+            
+            // now __new_storage is an old pointer, we should null it out to avoid unnecessary destructor call
+            _Destroy_a(__new_storage.__I_vimpl.__I_start, __new_storage.__I_vimpl.__I_finish, _M_get_allocator());
+            __new_storage.__I_vimpl.__I_finish = __new_storage.__I_vimpl.__I_start;
         }
 
-        return this->insert(__iter, value_type(vstl::forward<_Args>(__args)...));
+        return __I_vimpl.__I_start + __start_offset + __sz;
+
+        // difference_type __start_offset = __iter - cbegin();
+        // size_type __free_sz = __I_vimpl.__I_end - __I_vimpl.__I_finish;
+
+        // if(__iter == end() && __free_sz > 0)
+        // {
+        //     _M_get_allocator().construct(__I_vimpl.__I_finish, vstl::forward<_Args>(__args)...);
+        //     ++__I_vimpl.__I_finish;
+        //     return __I_vimpl.__I_finish - 1;
+        // }
+
+        // return insert(__iter, value_type(vstl::forward<_Args>(__args)...));
     };
 
 
@@ -628,7 +676,7 @@ namespace vstl
     template <typename... _Args>
     inline void vector<_Tp, _Alloc>::emplace_back(_Args&&... __args)
     {
-        this->emplace(this->end(), __args...);
+        emplace(end(), __args...);
     };
 
 
@@ -688,7 +736,7 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     inline vector<_Tp, _Alloc>& vector<_Tp, _Alloc>::operator=(vector&& __vect)
     {
-       this->__I_vimpl._M_nothrow_swap_data(__vect.__I_vimpl);
+       __I_vimpl._M_nothrow_swap_data(__vect.__I_vimpl);
        return *this;
     };
 
@@ -768,7 +816,7 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     inline typename vector<_Tp, _Alloc>::const_reference vector<_Tp, _Alloc>::at(size_type __pos) const
     {
-        if(__pos >= this->size())
+        if(__pos >= size())
             throw std::out_of_range("vstl::vector::at - invalid offset");
         return *(__I_vimpl.__I_start + __pos);
     };
@@ -815,7 +863,7 @@ namespace vstl
     template <typename _Tp, typename _Alloc>
     inline void vector<_Tp, _Alloc>::clear() noexcept
     {
-        _Destroy_a(this->begin(), this->end(), _M_get_allocator());
+        _Destroy_a(begin(), end(), _M_get_allocator());
     };
 
 
@@ -891,8 +939,8 @@ namespace vstl
         __vbase.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__vbase.__I_vimpl.__I_start, 
             __old_start, __old_size, _M_get_allocator());
         
-        // swap current and new _Vector_Base to destruct old elements
-        this->__I_vimpl._M_nothrow_swap_data(__vbase.__I_vimpl);
+        // swaps current and new _Vector_Base to destruct old elements
+        __I_vimpl._M_nothrow_swap_data(__vbase.__I_vimpl);
         _Destroy_a(__vbase.__I_vimpl.__I_start, __vbase.__I_vimpl.__I_finish, _M_get_allocator());
     };
 
@@ -916,8 +964,8 @@ namespace vstl
         __vbase.__I_vimpl.__I_finish = __nothrow_move_or_copy_with_range_a(__vbase.__I_vimpl.__I_start, 
             __I_vimpl.__I_start, __memcnt, _M_get_allocator());
         
-        // swap current and new _Vector_Base to destruct old elements
-        this->__I_vimpl._M_nothrow_swap_data(__vbase.__I_vimpl);
+        // swaps current and new _Vector_Base to destruct old elements
+        __I_vimpl._M_nothrow_swap_data(__vbase.__I_vimpl);
         _Destroy_a(__vbase.__I_vimpl.__I_start, __vbase.__I_vimpl.__I_finish, _M_get_allocator());
     };
 
