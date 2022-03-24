@@ -167,8 +167,8 @@ namespace vstl
     /**
      * @brief VSTL implementation of the std::vector 
      * 
-     * @tparam _Tp - type of object to store
-     * @tparam _Alloc - memory model
+     * @tparam _Tp type of object to store
+     * @tparam _Alloc memory model
      */
     template <typename _Tp, typename _Alloc = vstl::allocator<_Tp>>
     class vector : protected vstl::_Vector_Base<_Tp, _Alloc>
@@ -179,7 +179,7 @@ namespace vstl
              *  Basic requirements on the type
              */
             static_assert(vstl::is_same<vstl::remove_cv_t<_Tp>, _Tp>::value, 
-                "vstl::vector<T, Alloc>: T must be a non-const, non-volatile type");
+                "vstl::vector<_Tp, _Alloc>: T must be a non-const, non-volatile type");
 
         
             typedef _Vector_Base<_Tp, _Alloc>                        _Base;
@@ -595,7 +595,7 @@ namespace vstl
      * @brief Inserts a new element directly before pos
      * 
      * @param __iter hint where to insert newly constructed element 
-     * @param __args arguments to constructor
+     * @param __args constructor's arguments
      * 
      * @return vector<_Tp, _Alloc>::iterator 
      * If insertion is successfull, returns iterator of the first inserted element.
@@ -622,7 +622,7 @@ namespace vstl
     /**
      * @brief Inserts new element directly at the end 
      * 
-     * @param __args constructor arguments
+     * @param __args constructor's arguments
      */
     template <typename _Tp, typename _Alloc>
     template <typename... _Args>
